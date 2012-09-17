@@ -25,6 +25,8 @@
 #include <Python.h>
 #include <rrd.h>
 
+static const char *_version = "0.1.0";
+
 /* Exception types */
 static PyObject *rrdtool_OperationalError;
 static PyObject *rrdtool_ProgrammingError;
@@ -108,6 +110,55 @@ convert_args(char *command, PyObject *args)
     return 0;
 }
 
+static PyObject *
+_rrdtool_util_info2dict(const rrd_info_t *data)
+{
+    PyObject *dict, *val = NULL;
+
+    dict = PyDict_New();
+
+    while (data) {
+        switch (data->type) {
+            case RD_I_VAL:
+                if (isnan(data->value.u_val)) {
+                    Py_INCREF(Py_None);
+                    val = Py_None;
+                } else
+                    PyFloat_FromDouble(data->value.u_val);
+                break;
+
+            case RD_I_CNT:
+                val = PyLong_FromUnsignedLong(data->value.u_cnt);
+                break;
+
+            case RD_I_INT:
+                val = PyLong_FromLong(data->value.u_int);
+                break;
+
+            case RD_I_STR:
+                val = PyUnicode_FromString(data->value.u_str);
+                break;
+
+            case RD_I_BLO:
+                val = PyUnicode_FromStringAndSize(
+                  (char *)data->value.u_blo.ptr, data->value.u_blo.size);
+                break;
+            default:
+                val = NULL;
+                break;
+        }
+
+        if (val) {
+            PyDict_SetItemString(dict, data->key, val);
+            Py_DECREF(val);
+        }
+
+        data = data->next;
+    }
+
+    return dict;
+}
+
 static char _rrdtool_create__doc__[] = "Create a new Round Robin Database.\n\n\
   Usage: create(args...)\n\
   Arguments:\n\n\
@@ -166,6 +217,33 @@ _rrdtool_update(PyObject *self, PyObject *args)
     } else {
         Py_INCREF(Py_None);
         ret = Py_None;
+    }
+
+	destroy_args();
+    return ret;
+}
+
+static char _rrdtool_updatev__doc__[] = "Store a new set of values into "\
+  "the Round Robin Database and return an info dictionary.\n\n\
+  This function works in the same manner as 'update', but will return an\n\
+  info dictionary instead of None.";
+
+static PyObject *
+_rrdtool_updatev(PyObject *self, PyObject *args)
+{
+    PyObject *ret;
+    rrd_info_t *data;
+
+    if (convert_args("updatev", args) == -1)
+        return NULL;
+
+    if ((data = rrd_update_v(rrdtool_argc, rrdtool_argv)) == NULL) {
+        PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
+        rrd_clear_error();
+        ret = NULL;
+    } else {
+        ret = _rrdtool_util_info2dict(data);
+        rrd_info_free(data);
     }
 
 	destroy_args();
@@ -245,6 +323,36 @@ _rrdtool_fetch(PyObject *self, PyObject *args)
     return ret;
 }
 
+static char _rrdtool_flushcached__doc__[] = "Flush RRD files from memory.\n\n\
+  Usage: flushcached(args..)\n\
+  Arguments:\n\n\
+    [--daemon address]\n\
+    filename\n\
+    [filename ...]\n\n\
+    Full documentation can be found at:\n\
+    http://oss.oetiker.ch/rrdtool/doc/rrdflushcached.en.html";
+
+static PyObject *
+_rrdtool_flushcached(PyObject *self, PyObject *args)
+{
+    PyObject *ret;
+
+    if (convert_args("flushcached", args) == -1)
+        return NULL;
+
+    if (rrd_flushcached(rrdtool_argc, rrdtool_argv) != 0) {
+        PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
+        rrd_clear_error();
+        ret = NULL;
+    } else {
+        Py_INCREF(Py_None);
+        ret = Py_None;
+    }
+
+	destroy_args();
+    return ret;
+}
+
 static char _rrdtool_graph__doc__[] = "Create a graph based on one or more " \
   "RRDs.\n\n\
   Usage: graph(args..)\n\
@@ -308,31 +416,34 @@ static PyObject *
 _rrdtool_graph(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     PyObject *ret;
-    int orig_stdout, op[2], xsize, ysize, i;
+    int xsize, ysize, i;
     int keep_in_mem = 0;
     double ymin, ymax;
-    char **calcpr;
+    char **calcpr, *bp;
+#ifdef _POSIX_C_SOURCE
+    FILE *orig_stdout = stdout;
+    size_t bsize;
+#endif
 
     if (convert_args("graph", args) == -1)
         return NULL;
 
-    if (rrdtool_argc >= 2 && strcmp(rrdtool_argv[1], "-") == 0)
+    if (rrdtool_argc >= 2 && strcmp(rrdtool_argv[1], "-") == 0) {
+#ifdef _POSIX_C_SOURCE
         keep_in_mem = 1;
-
-    if (keep_in_mem) {
-        orig_stdout = dup(STDOUT_FILENO);
-        if (pipe(op) != 0) {
-            PyErr_Format(rrdtool_OperationalError,
-            "Cannot create pipe for stdout: %s", strerror(errno));
-            ret = NULL;
-        } else {
-            dup2(op[1], STDOUT_FILENO);
-            close(op[1]);
-
-            // do something on stdout
-            // read(op[0], buffer, MAX_LEN);
-        }
+#else
+        PyErr_SetString(rrdtool_ProgrammingError,
+          "Output filename cannot be '-', because this platform does not "\
+          "support output buffering");
+        destroy_args();
+        return NULL;
+#endif
     }
+
+#ifdef _POSIX_C_SOURCE
+    if (keep_in_mem)
+        stdout = open_memstream(&bp, &bsize);
+#endif
 
     if (rrd_graph(rrdtool_argc, rrdtool_argv, &calcpr, &xsize, &ysize, NULL,
                   &ymin, &ymax) == -1) {
@@ -365,23 +476,200 @@ _rrdtool_graph(PyObject *self, PyObject *args, PyObject *kwargs)
         /* feed buffered contents into a PyBytes object */
         if (keep_in_mem) {
             PyObject *pb;
-            ssize_t rs;
-            char buffer[4096];
 
-            pb = PyBytes_FromStringAndSize("", 0);
-            for (;;) {
-                if ((rs = read(op[0], buffer, 4096)) <= 0)
-                    break;
-                else
-                    PyBytes_Concat(&pb, PyBytes_FromStringAndSize(buffer, rs));
-            }
+            fflush(stdout);
+            pb = PyBytes_FromStringAndSize(bp, bsize);
 
             PyTuple_SET_ITEM(ret, 3, pb);
         }
     }
 
-    if (keep_in_mem)
-        dup2(orig_stdout, STDOUT_FILENO);
+    if (keep_in_mem) {
+        fclose(stdout);
+        stdout = orig_stdout;
+    }
+
+    destroy_args();
+    return ret;
+}
+
+static char _rrdtool_graphv__doc__[] = "Create a graph based on one or more "\
+  "RRDs and return header information.\n\n\
+  This function works in the same manner as 'graph', but will return a info\n\
+  dictionary instead of None.";
+
+static PyObject *
+_rrdtool_graphv(PyObject *self, PyObject *args)
+{
+    PyObject *ret;
+    rrd_info_t *data;
+
+    if (convert_args("graphv", args) == -1)
+        return NULL;
+
+    if ((data = rrd_graph_v(rrdtool_argc, rrdtool_argv)) == NULL) {
+        PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
+        rrd_clear_error();
+        ret = NULL;
+    } else {
+        ret = _rrdtool_util_info2dict(data);
+        rrd_info_free(data);
+    }
+
+    destroy_args();
+    return ret;
+}
+
+static char _rrdtool_tune__doc__[] = "Modify some basic properties of a " \
+  "Round Robin Database.\n\n\
+  Usage: tune(args..)\n\
+  Arguments:\n\n\
+    filename\n\
+    [-h|--heartbeat ds-name:heartbeat]\n\
+    [-i|--minimum ds-name:min]\n\
+    [-a|--maximum ds-name:max]\n\
+    [-d|--data-source-type ds-name:DST]\n\
+    [-r|--data-source-rename old-name:new-name]\n\n\
+    Full documentation can be found at:\n\
+    http://oss.oetiker.ch/rrdtool/doc/rrdtune.en.html";
+
+static PyObject *
+_rrdtool_tune(PyObject *self, PyObject *args)
+{
+    PyObject *ret;
+
+    if (convert_args("tune", args) == -1)
+        return NULL;
+
+    if (rrd_tune(rrdtool_argc, rrdtool_argv) == -1) {
+        PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
+        rrd_clear_error();
+        ret = NULL;
+    } else {
+        Py_INCREF(Py_None);
+        ret = Py_None;
+    }
+
+    destroy_args();
+    return ret;
+}
+
+static char _rrdtool_first__doc__[] = "Get the first UNIX timestamp of the "\
+  "first data sample in an Round Robin Database.\n\n\
+  Usage: first(args..)\n\
+  Arguments:\n\n\
+    filename\n\
+    [--rraindex number]\n\n\
+    Full documentation can be found at:\n\
+    http://oss.oetiker.ch/rrdtool/doc/rrdfirst.en.html";
+
+static PyObject *
+_rrdtool_first(PyObject *self, PyObject *args)
+{
+    PyObject *ret;
+    int ts;
+
+    if (convert_args("first", args) == -1)
+        return NULL;
+
+    if ((ts = rrd_first(rrdtool_argc, rrdtool_argv)) == -1) {
+        PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
+        rrd_clear_error();
+        ret = NULL;
+    } else
+        ret = PyLong_FromLong((long)ts);
+
+    destroy_args();
+    return ret;
+}
+
+static char _rrdtool_last__doc__[] = "Get the UNIX timestamp of the most "\
+  "recent data sample in an Round Robin Database.\n\n\
+  Usage: last(args..)\n\
+  Arguments:\n\n\
+    filename\n\
+    [--daemon address]\n\n\
+    Full documentation can be found at:\n\
+    http://oss.oetiker.ch/rrdtool/doc/rrdlast.en.html";
+
+static PyObject *
+_rrdtool_last(PyObject *self, PyObject *args)
+{
+    PyObject *ret;
+    int ts;
+
+    if (convert_args("last", args) == -1)
+        return NULL;
+
+    if ((ts = rrd_last(rrdtool_argc, rrdtool_argv)) == -1) {
+        PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
+        rrd_clear_error();
+        ret = NULL;
+    } else
+        ret = PyLong_FromLong((long)ts);
+
+    destroy_args();
+    return ret;
+}
+
+static char _rrdtool_resize__doc__[] = "Modify the number of rows in a "\
+ "Round Robin Database.\n\n\
+  Usage: resize(args..)\n\
+  Arguments:\n\n\
+    filename\n\
+    rra-num\n\
+    GROW|SHRINK\n\
+    rows\n\n\
+    Full documentation can be found at:\n\
+    http://oss.oetiker.ch/rrdtool/doc/rrdlast.en.html";
+
+static PyObject *
+_rrdtool_resize(PyObject *self, PyObject *args)
+{
+    PyObject *ret;
+    int ts;
+
+    if (convert_args("resize", args) == -1)
+        return NULL;
+
+    if ((ts = rrd_resize(rrdtool_argc, rrdtool_argv)) == -1) {
+        PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
+        rrd_clear_error();
+        ret = NULL;
+    } else {
+        Py_INCREF(Py_None);
+        ret = Py_None;
+    }
+
+    destroy_args();
+    return ret;
+}
+
+static char _rrdtool_info__doc__[] = "Extract header information from an "\
+ "Round Robin Database.\n\n\
+  Usage: info(filename)\n\
+  Arguments:\n\n\
+    filename\n\n\
+    Full documentation can be found at:\n\
+    http://oss.oetiker.ch/rrdtool/doc/rrdinfo.en.html";
+
+static PyObject *
+_rrdtool_info(PyObject *self, PyObject *args)
+{
+    PyObject *ret;
+    rrd_info_t *data;
+
+    if (convert_args("info", args) == -1)
+        return NULL;
+
+    if ((data = rrd_info(rrdtool_argc, rrdtool_argv)) == NULL) {
+        PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
+        rrd_clear_error();
+        ret = NULL;
+    } else {
+        ret = _rrdtool_util_info2dict(data);
+        rrd_info_free(data);
+    }
 
     destroy_args();
     return ret;
@@ -392,10 +680,26 @@ static PyMethodDef rrdtool_methods[] = {
      METH_VARARGS, _rrdtool_create__doc__},
     {"update", (PyCFunction)_rrdtool_update,
      METH_VARARGS, _rrdtool_update__doc__},
+    {"updatev", (PyCFunction)_rrdtool_updatev,
+     METH_VARARGS, _rrdtool_updatev__doc__},
     {"fetch", (PyCFunction)_rrdtool_fetch,
      METH_VARARGS, _rrdtool_fetch__doc__},
+    {"flushcached", (PyCFunction)_rrdtool_flushcached,
+     METH_VARARGS, _rrdtool_flushcached__doc__},
     {"graph", (PyCFunction)_rrdtool_graph,
-     METH_VARARGS | METH_KEYWORDS, _rrdtool_graph__doc__},
+     METH_VARARGS, _rrdtool_graph__doc__},
+    {"graphv", (PyCFunction)_rrdtool_graphv,
+     METH_VARARGS, _rrdtool_graphv__doc__},
+    {"tune", (PyCFunction)_rrdtool_tune,
+     METH_VARARGS, _rrdtool_tune__doc__},
+    {"first", (PyCFunction)_rrdtool_first,
+     METH_VARARGS, _rrdtool_first__doc__},
+    {"last", (PyCFunction)_rrdtool_last,
+     METH_VARARGS, _rrdtool_last__doc__},
+    {"resize", (PyCFunction)_rrdtool_resize,
+     METH_VARARGS, _rrdtool_resize__doc__},
+    {"info", (PyCFunction)_rrdtool_info,
+     METH_VARARGS, _rrdtool_info__doc__},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -425,6 +729,7 @@ PyInit_rrdtool(void)
 	                                              NULL, NULL);
 	Py_INCREF(rrdtool_OperationalError);
 	PyModule_AddObject(m, "OperationalError", rrdtool_OperationalError);
+    PyModule_AddObject(m, "__version__", PyUnicode_FromString(_version));
 
 	return m;
 }
