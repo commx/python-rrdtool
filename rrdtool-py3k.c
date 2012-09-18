@@ -113,11 +113,13 @@ convert_args(char *command, PyObject *args)
 static PyObject *
 _rrdtool_util_info2dict(const rrd_info_t *data)
 {
-    PyObject *dict, *val = NULL;
+    PyObject *dict, *val;
 
     dict = PyDict_New();
 
     while (data) {
+        val = NULL;
+
         switch (data->type) {
             case RD_I_VAL:
                 if (isnan(data->value.u_val)) {
@@ -144,11 +146,10 @@ _rrdtool_util_info2dict(const rrd_info_t *data)
                   (char *)data->value.u_blo.ptr, data->value.u_blo.size);
                 break;
             default:
-                val = NULL;
                 break;
         }
 
-        if (val) {
+        if (val != NULL) {
             PyDict_SetItemString(dict, data->key, val);
             Py_DECREF(val);
         }
@@ -675,6 +676,15 @@ _rrdtool_info(PyObject *self, PyObject *args)
     return ret;
 }
 
+static char _rrdtool_lib_version__doc__[] = "Get the version this binding "\
+  "was compiled against.";
+
+static PyObject *
+_rrdtool_lib_version(PyObject *self, PyObject *args)
+{
+    return PyUnicode_FromString(rrd_strversion());
+}
+
 static PyMethodDef rrdtool_methods[] = {
 	{"create", (PyCFunction)_rrdtool_create,
      METH_VARARGS, _rrdtool_create__doc__},
@@ -700,6 +710,8 @@ static PyMethodDef rrdtool_methods[] = {
      METH_VARARGS, _rrdtool_resize__doc__},
     {"info", (PyCFunction)_rrdtool_info,
      METH_VARARGS, _rrdtool_info__doc__},
+    {"lib_version", (PyCFunction)_rrdtool_lib_version,
+     METH_VARARGS, _rrdtool_lib_version__doc__},
 	{NULL, NULL, 0, NULL}
 };
 

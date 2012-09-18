@@ -1,11 +1,21 @@
 from distutils.core import setup, Extension
-from glob import glob
 
-sources = glob('*.c')
-module = Extension('rrdtool', sources=sources, libraries=['rrd'])
+def main():
+    module = Extension('rrdtool', sources=['rrdtool-py3k.c'],
+                       libraries=['rrd'])
 
-setup(name='rrdtool',
-      version='1.0',
-      description='rrdtool bindings for Python 3',
-      ext_modules=[module])
+    kwargs = dict(
+        name='python-rrdtool',
+        version='0.1.0',
+        description='rrdtool bindings for Python 3',
+        keywords=['rrdtool'],
+        author='Christian Jurk, Hye-Shik Chang',
+        author_email='commx@commx.ws',
+        ext_modules=[module],
+        py_modules=['RRDtool']
+    )
 
+    setup(**kwargs)
+
+if __name__ == '__main__':
+    main()
