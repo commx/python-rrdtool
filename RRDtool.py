@@ -24,11 +24,11 @@
 #
 #
 
+import io
 import os
 import rrdtool
 
 from datetime import datetime
-from io import BytesIO
 from time import mktime
 
 def create(filename, *args):
@@ -67,13 +67,13 @@ class RRD:
 		outfile = '-' if output_file is None else output_file
 
 		# when writing to a file-like object, use output buffering
-		if isinstance(output_file, os.IOBase):
+		if isinstance(output_file, io.IOBase):
 			outfile = '-'
 
 		info = rrdtool.graphv(outfile, *args)
 
 		if isinstance(info, dict) and 'image' in info:
-			if isinstance(output_file, os.IOBase):
+			if isinstance(output_file, io.IOBase):
 				output_file.write(info['image'])
 			elif output_file is None:
 				return info['image']
