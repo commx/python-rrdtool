@@ -1,5 +1,5 @@
 /*
- * rrdtool-py3k, rrdtool bindings for Python 3.
+ * python-rrdtool, rrdtool bindings for Python.
  * Based on the rrdtool Python bindings for Python 2 from
  * Hye-Shik Chang <perky@fallin.lv>.
  *
@@ -25,7 +25,7 @@
 #include <Python.h>
 #include <rrd.h>
 
-static const char *_version = "0.1.0";
+static const char *_version = "0.1.1";
 
 /* Exception types */
 static PyObject *rrdtool_OperationalError;
@@ -142,8 +142,13 @@ _rrdtool_util_info2dict(const rrd_info_t *data)
                 break;
 
             case RD_I_BLO:
-                val = PyUnicode_FromStringAndSize(
+#if PY_MAJOR_VERSION >= 3
+                val = PyBytes_FromStringAndSize(
+                    (char *)data->value.u_blo.ptr, data->value.u_blo.size);
+#else
+                val = PyString_FromStringAndSize(
                   (char *)data->value.u_blo.ptr, data->value.u_blo.size);
+#endif
                 break;
             default:
                 break;
@@ -168,8 +173,8 @@ static char _rrdtool_create__doc__[] = "Create a new Round Robin Database.\n\n\
     [--step|-s step]\n\
     [DS:ds-name:DST:heartbeat:min:max]\n\
     [RRA:CF:xff:steps:rows]\n\n\
-    Full documentation can be found at:\n\
-    http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html";
+  Full documentation can be found at:\n\
+  http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html";
 
 static PyObject *
 _rrdtool_create(PyObject *self, PyObject *args)
@@ -192,6 +197,37 @@ _rrdtool_create(PyObject *self, PyObject *args)
     return ret;
 }
 
+static char _rrdtool_dump__doc__[] = "Dump an RRD to XML.\n\n\
+  Usage: dump(args..)\n\
+  Arguments:\n\n\
+    [-h|--header {none,xsd,dtd}\n\
+    [--no-header]\n\
+    file.rrd\n\
+    [file.xml]\n\n\
+  Full documentation can be found at:\n\
+  http://oss.oetiker.ch/rrdtool/doc/rrddump.en.html";
+
+static PyObject *
+_rrdtool_dump(PyObject *self, PyObject *args)
+{
+    PyObject *ret;
+
+    if (convert_args("dump", args) == -1)
+        return NULL;
+
+    if (rrd_dump(rrdtool_argc, rrdtool_argv) != 0) {
+        PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
+        rrd_clear_error();
+        ret = NULL;
+    } else {
+        Py_INCREF(Py_None);
+        ret = Py_None;
+    }
+
+    destroy_args();
+    return ret;
+}
+
 static char _rrdtool_update__doc__[] = "Store a new set of values into\
  the RRD.\n\n\
  Usage: update(args..)\n\
@@ -200,8 +236,8 @@ static char _rrdtool_update__doc__[] = "Store a new set of values into\
    [--template|-t ds-name[:ds-name]...]\n\
    N|timestamp:value[:value...]\n\
    [timestamp:value[:value...] ...]\n\n\
-   Full documentation can be found at:\n\
-   http://oss.oetiker.ch/rrdtool/doc/rrdupdate.en.html";
+  Full documentation can be found at:\n\
+  http://oss.oetiker.ch/rrdtool/doc/rrdupdate.en.html";
 
 static PyObject *
 _rrdtool_update(PyObject *self, PyObject *args)
@@ -259,8 +295,8 @@ static char _rrdtool_fetch__doc__[] = "Fetch data from an RRD.\n\n\
     [--resolution|-r resolution]\n\
     [--start|-s start]\n\
     [--end|-e end]\n\n\
-    Full documentation can be found at:\n\
-    http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html";
+  Full documentation can be found at:\n\
+  http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html";
 
 static PyObject *
 _rrdtool_fetch(PyObject *self, PyObject *args)
@@ -330,8 +366,8 @@ static char _rrdtool_flushcached__doc__[] = "Flush RRD files from memory.\n\n\
     [--daemon address]\n\
     filename\n\
     [filename ...]\n\n\
-    Full documentation can be found at:\n\
-    http://oss.oetiker.ch/rrdtool/doc/rrdflushcached.en.html";
+  Full documentation can be found at:\n\
+  http://oss.oetiker.ch/rrdtool/doc/rrdflushcached.en.html";
 
 static PyObject *
 _rrdtool_flushcached(PyObject *self, PyObject *args)
@@ -410,41 +446,19 @@ static char _rrdtool_graph__doc__[] = "Create a graph based on one or more " \
     DEF:vname=rrdfile:ds-name:CF[:step=step][:start=time][:end=time]\n\
     CDEF:vname=RPN expression\n\
     VDEF=vname:RPN expression\n\n\
-    Full documentation can be found at:\n\
-    http://oss.oetiker.ch/rrdtool/doc/rrdgraph.en.html";
+  Full documentation can be found at:\n\
+  http://oss.oetiker.ch/rrdtool/doc/rrdgraph.en.html";
 
 static PyObject *
 _rrdtool_graph(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     PyObject *ret;
     int xsize, ysize, i;
-    int keep_in_mem = 0;
     double ymin, ymax;
-    char **calcpr, *bp;
-#ifdef _POSIX_C_SOURCE
-    FILE *orig_stdout = stdout;
-    size_t bsize;
-#endif
+    char **calcpr;
 
     if (convert_args("graph", args) == -1)
         return NULL;
-
-    if (rrdtool_argc >= 2 && strcmp(rrdtool_argv[1], "-") == 0) {
-#ifdef _POSIX_C_SOURCE
-        keep_in_mem = 1;
-#else
-        PyErr_SetString(rrdtool_ProgrammingError,
-          "Output filename cannot be '-', because this platform does not "\
-          "support output buffering");
-        destroy_args();
-        return NULL;
-#endif
-    }
-
-#ifdef _POSIX_C_SOURCE
-    if (keep_in_mem)
-        stdout = open_memstream(&bp, &bsize);
-#endif
 
     if (rrd_graph(rrdtool_argc, rrdtool_argv, &calcpr, &xsize, &ysize, NULL,
                   &ymin, &ymax) == -1) {
@@ -452,7 +466,7 @@ _rrdtool_graph(PyObject *self, PyObject *args, PyObject *kwargs)
         rrd_clear_error();
         ret = NULL;
     } else {
-        ret = PyTuple_New(keep_in_mem ? 4 : 3);
+        ret = PyTuple_New(3);
 
         PyTuple_SET_ITEM(ret, 0, PyLong_FromLong((long)xsize));
         PyTuple_SET_ITEM(ret, 1, PyLong_FromLong((long)ysize));
@@ -473,21 +487,6 @@ _rrdtool_graph(PyObject *self, PyObject *args, PyObject *kwargs)
             Py_INCREF(Py_None);
             PyTuple_SET_ITEM(ret, 2, Py_None);
         }
-
-        /* feed buffered contents into a PyBytes object */
-        if (keep_in_mem) {
-            PyObject *pb;
-
-            fflush(stdout);
-            pb = PyBytes_FromStringAndSize(bp, bsize);
-
-            PyTuple_SET_ITEM(ret, 3, pb);
-        }
-    }
-
-    if (keep_in_mem) {
-        fclose(stdout);
-        stdout = orig_stdout;
     }
 
     destroy_args();
@@ -531,8 +530,8 @@ static char _rrdtool_tune__doc__[] = "Modify some basic properties of a " \
     [-a|--maximum ds-name:max]\n\
     [-d|--data-source-type ds-name:DST]\n\
     [-r|--data-source-rename old-name:new-name]\n\n\
-    Full documentation can be found at:\n\
-    http://oss.oetiker.ch/rrdtool/doc/rrdtune.en.html";
+  Full documentation can be found at:\n\
+  http://oss.oetiker.ch/rrdtool/doc/rrdtune.en.html";
 
 static PyObject *
 _rrdtool_tune(PyObject *self, PyObject *args)
@@ -561,8 +560,8 @@ static char _rrdtool_first__doc__[] = "Get the first UNIX timestamp of the "\
   Arguments:\n\n\
     filename\n\
     [--rraindex number]\n\n\
-    Full documentation can be found at:\n\
-    http://oss.oetiker.ch/rrdtool/doc/rrdfirst.en.html";
+  Full documentation can be found at:\n\
+  http://oss.oetiker.ch/rrdtool/doc/rrdfirst.en.html";
 
 static PyObject *
 _rrdtool_first(PyObject *self, PyObject *args)
@@ -590,8 +589,8 @@ static char _rrdtool_last__doc__[] = "Get the UNIX timestamp of the most "\
   Arguments:\n\n\
     filename\n\
     [--daemon address]\n\n\
-    Full documentation can be found at:\n\
-    http://oss.oetiker.ch/rrdtool/doc/rrdlast.en.html";
+  Full documentation can be found at:\n\
+  http://oss.oetiker.ch/rrdtool/doc/rrdlast.en.html";
 
 static PyObject *
 _rrdtool_last(PyObject *self, PyObject *args)
@@ -621,8 +620,8 @@ static char _rrdtool_resize__doc__[] = "Modify the number of rows in a "\
     rra-num\n\
     GROW|SHRINK\n\
     rows\n\n\
-    Full documentation can be found at:\n\
-    http://oss.oetiker.ch/rrdtool/doc/rrdlast.en.html";
+  Full documentation can be found at:\n\
+  http://oss.oetiker.ch/rrdtool/doc/rrdlast.en.html";
 
 static PyObject *
 _rrdtool_resize(PyObject *self, PyObject *args)
@@ -651,8 +650,8 @@ static char _rrdtool_info__doc__[] = "Extract header information from an "\
   Usage: info(filename)\n\
   Arguments:\n\n\
     filename\n\n\
-    Full documentation can be found at:\n\
-    http://oss.oetiker.ch/rrdtool/doc/rrdinfo.en.html";
+  Full documentation can be found at:\n\
+  http://oss.oetiker.ch/rrdtool/doc/rrdinfo.en.html";
 
 static PyObject *
 _rrdtool_info(PyObject *self, PyObject *args)
@@ -688,6 +687,8 @@ _rrdtool_lib_version(PyObject *self, PyObject *args)
 static PyMethodDef rrdtool_methods[] = {
 	{"create", (PyCFunction)_rrdtool_create,
      METH_VARARGS, _rrdtool_create__doc__},
+    {"dump", (PyCFunction)_rrdtool_dump,
+     METH_VARARGS, _rrdtool_dump__doc__},
     {"update", (PyCFunction)_rrdtool_update,
      METH_VARARGS, _rrdtool_update__doc__},
     {"updatev", (PyCFunction)_rrdtool_updatev,
@@ -715,6 +716,8 @@ static PyMethodDef rrdtool_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+#if PY_MAJOR_VERSION >= 3
+
 static struct PyModuleDef rrdtoolmodule = {
 	PyModuleDef_HEAD_INIT,
 	"rrdtool",
@@ -723,14 +726,32 @@ static struct PyModuleDef rrdtoolmodule = {
 	rrdtool_methods
 };
 
+#endif
+
+#if PY_MAJOR_VERSION >= 3
 PyMODINIT_FUNC
 PyInit_rrdtool(void)
+#else
+void
+initrrdtool(void)
+#endif
 {
 	PyObject *m;
 
+#if PY_MAJOR_VERSION >= 3
 	m = PyModule_Create(&rrdtoolmodule);
+#else
+    m = Py_InitModule3("rrdtool",
+                       rrdtool_methods,
+                       "rrdtool bindings for Python");
+#endif
+
 	if (m == NULL)
-		return NULL;
+#if PY_MAJOR_VERSION >= 3
+        return NULL;
+#else
+        return;
+#endif
 
 	rrdtool_ProgrammingError = PyErr_NewException("rrdtool.ProgrammingError",
 	                                              NULL, NULL);
@@ -743,5 +764,7 @@ PyInit_rrdtool(void)
 	PyModule_AddObject(m, "OperationalError", rrdtool_OperationalError);
     PyModule_AddObject(m, "__version__", PyUnicode_FromString(_version));
 
+#if PY_MAJOR_VERSION >= 3
 	return m;
+#endif
 }

@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  rrdtool-py3k, rrdtool bindings for Python 3.
+#  python-rrdtool, rrdtool bindings for Python.
 #  Based on the rrdtool Python bindings for Python 2 from
 #  Hye-Shik Chang <perky@fallin.lv>.
 #
@@ -24,10 +24,11 @@
 #
 #
 
-from datetime import datetime
-from io import BytesIO
 import os
 import rrdtool
+
+from datetime import datetime
+from io import BytesIO
 from time import mktime
 
 def create(filename, *args):
@@ -57,25 +58,27 @@ class RRD:
 		self.filename = filename
 
 	def graph(self, output_file, *args):
-		"Create a graph based on one or more RRDs."
-		buffered = True
-		outfile = '-'
+		"""
+		Generate a graph based on the arguments passed to this function.
 
-		# write straigt into file using wrapper functions
-		if isinstance(output_file, str):
-			buffered = False
-			outfile = output_file
+		If output_file is None, "-" will be used as the output filename.
+		In that case, rrdtool returns the image bytes within its info dict.
+		"""
+		outfile = '-' if output_file is None else output_file
 
-		gdata = rrdtool.graph(outfile, *args)
+		# when writing to a file-like object, use output buffering
+		if isinstance(output_file, os.IOBase):
+			outfile = '-'
 
-		if isinstance(gdata, tuple) and len(gdata) >= 4:
-			if output_file is None:
-				return gdata[3]
-			elif isinstance(output_file, BytesIO):
-				output_file.write(gdata[3])
-				return output_file
+		info = rrdtool.graphv(outfile, *args)
 
-		return None
+		if isinstance(info, dict) and 'image' in info:
+			if isinstance(output_file, os.IOBase):
+				output_file.write(info['image'])
+			elif output_file is None:
+				return info['image']
+
+		return info
 
 	def info(self):
 		return rrdtool.info(self.filename)
