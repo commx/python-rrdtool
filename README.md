@@ -1,7 +1,7 @@
 python-rrdtool
 ==============
 
-Python bindings for rrdtool with a native C extension and an object-oriented way to work with Round Robin Databases. As of version 0.1.1, Python 2 and 3 is supported.
+Python bindings for [RRDtool](http://oss.oetiker.ch/rrdtool) with a native C extension and an object-oriented way to work with Round Robin Databases. As of version 0.1.1, Python 2 and 3 is supported.
 
 The bindings are based on the code of the original Python 2 bindings for rrdtool by Hye-Shik Chang.
 
@@ -10,10 +10,9 @@ Installation
 
 In order to build the native C extension (which is an required step), you'll need librrd and its headers installed. Having rrdtool installed should be enough on most distributions.
 
-**How to Install?**
+The easy way to install is to use `pip install rrdtool` or `easy_install rrdtool`
 
-1. Download a copy of the repository.
-2. Run `python setup.py install` to build an install the native C extension as well as the RRD module.
+In case you'd like to build the module on your own, you can obtain a copy of the repository and run `python setup.py install` in it's destination folder to build the native C extension as well as the RRD module.
 
 Usage
 -----
