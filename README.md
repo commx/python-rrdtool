@@ -17,10 +17,6 @@ In case you'd like to build the module on your own, you can obtain a copy of the
 Usage
 -----
 
-You can either use the low-level `rrdtool` module (which offers almost the same functions as the old Python 2 bindings for rrdtool provided), or the `RRDtool` module, which represents a object-oriented interface to rrdtool.
-
-### Using the low-level `rrdtool` module
-
 ```python
 import rrdtool
 
@@ -31,30 +27,21 @@ rrdtool.create('test.rrd', '--start', 'now', '--step', '300', 'RRA:AVERAGE:0.5:1
 rrdtool.update('test.rrd', 'N:32')
 ```
 
-### Using the high-level `RRDtool` module
-
-```python
-import RRDtool
-
-# Create a Round Robin Database
-rrd = RRDtool.create('test.rrd', '--start', 'now', '--step', '300', 'RRA:AVERAGE:0.5:1:1200', 'DS:temp:GAUGE:600:-273:5000')
-
-# Update the RRD
-rrd.update([(None, 32)])
-
-# Create a graph from it
-rrd.graph('test.png', '--end', 'now', '--start', 'end-5minutes', '--width', '400', 'DEF:ds0a=test.rrd:temp:AVERAGE', 'LINE1:ds0a#0000FF:"temperature\l"')
-
-# Same, but keep data in memory.
-imgdata = rrd.graph(None, '--end', 'now', '--start', 'end-5minutes', '--width', '400', 'DEF:ds0a=test.rrd:temp:AVERAGE', 'LINE1:ds0a#0000FF:"temperature\l"')
-
-# You can also use file-like objects
-from io import BytesIO
-rrd.graph(io, ...)
-```
-
 Changes
 -------
+
+
+## 0.1.2
+
+*Released 2015-08-10*
+
+* Added: xport command
+* Added: lastupdate command
+* Removed: High-level interface (RRDtool module)
+* Improved documentation of functions
+* Code cleanup by using convenience macros
+* Fixed: On Python 2.x, str objects are returned instead of unicode ones
+* Merged changes from upstream
 
 ## 0.1.1
 

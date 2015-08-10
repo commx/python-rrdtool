@@ -1,4 +1,8 @@
-from distutils.core import setup, Extension
+try:
+    from setuptools import setup
+    from setuptools.extension import Extension
+except ImportError:
+    from distutils.core import setup, Extension
 
 def main():
     module = Extension('rrdtool',
@@ -8,13 +12,14 @@ def main():
 
     kwargs = dict(
         name='python-rrdtool',
-        version='0.1.1',
+        version='0.1.2',
         description='rrdtool bindings for Python',
         keywords=['rrdtool'],
         author='Christian Jurk, Hye-Shik Chang',
         author_email='commx@commx.ws',
+        license='GPL',
+        url='https://github.com/commx/python-rrdtool',
         ext_modules=[module],
-        py_modules=['RRDtool']
     )
 
     setup(**kwargs)
