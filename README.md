@@ -1,16 +1,20 @@
 python-rrdtool
 ==============
 
-Python bindings for [RRDtool](http://oss.oetiker.ch/rrdtool) with a native C extension and an object-oriented way to work with Round Robin Databases. As of version 0.1.1, Python 2 and 3 is supported.
+Python bindings for [RRDtool](http://oss.oetiker.ch/rrdtool) with a native C extension.
 
-The bindings are based on the code of the original Python 2 bindings for rrdtool by Hye-Shik Chang.
+Supported Python versions: 2.6+, 3.3+.
+
+The bindings are based on the code of the original Python 2 bindings for rrdtool by Hye-Shik Chang, which are currently shipped as official bindings with rrdtool.
 
 Installation
 ------------
 
-In order to build the native C extension (which is an required step), you'll need librrd and its headers installed. Having rrdtool installed should be enough on most distributions.
+The easy way:
 
-The easy way to install is to use `pip install rrdtool` or `easy_install rrdtool`
+    `# pip install rrdtool`
+
+Note: This requires rrdtool and it's development files (headers, libraries, dependencies) to be installed.
 
 In case you'd like to build the module on your own, you can obtain a copy of the repository and run `python setup.py install` in it's destination folder to build the native C extension as well as the RRD module.
 
@@ -35,13 +39,14 @@ Changes
 
 *Released 2015-08-10*
 
-* Added: xport command
-* Added: lastupdate command
-* Removed: High-level interface (RRDtool module)
+* Added xport command
+* Added lastupdate command
+* Removed high-level interface (RRDtool module)
 * Improved documentation of functions
 * Code cleanup by using convenience macros
-* Fixed: On Python 2.x, str objects are returned instead of unicode ones
-* Merged changes from upstream
+* On Python 2.x, str objects are returned instead of unicode objects
+* Merged some changes from upstream
+* License changed to LGPL 2.1 to match upstream licensing
 
 ## 0.1.1
 

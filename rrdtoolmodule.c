@@ -6,8 +6,8 @@
  * Copyright 2012 Christian Jurk <commx@commx.ws>
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as 
- * published by the Free Software Foundation; either version 3 of the 
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -34,12 +34,14 @@
 #define PyRRD_String_AS_STRING(x)  PyBytes_AsString(PyUnicode_AsUTF8String(o))
 #define PyRRD_String_FromStringAndSize(x, y)  PyBytes_FromStringAndSize(x, y)
 #define PyRRD_Int_FromLong(x)      PyLong_FromLong(x)
+#define PyRRD_Int_FromString(x, y, z)  PyLong_FromString(x,y,z)
 #else
 #define PyRRD_String_Check(x)      PyString_Check(x)
 #define PyRRD_String_FromString(x) PyString_FromString(x)
 #define PyRRD_String_AS_STRING(x)  PyString_AS_STRING(x)
 #define PyRRD_String_FromStringAndSize(x, y) PyString_FromStringAndSize(x, y)
 #define PyRRD_Int_FromLong(x)      PyInt_FromLong(x)
+#define PyRRD_Int_FromString(x, y, z)  PyInt_FromString(x,y,z)
 #endif
 
 /** Binding version. */
@@ -68,12 +70,12 @@ static int
 convert_args(char *command, PyObject *args)
 {
     PyObject *o, *lo;
-    int i, j, args_count, argv_count = 0, element_count = 0;
+    int i, j, args_count, argv_count, element_count;
 
+    argv_count = element_count = 0;
     args_count = PyTuple_Size(args);
 
-    for (i = 0; i < args_count; i++)
-    {
+    for (i = 0; i < args_count; i++) {
         o = PyTuple_GET_ITEM(args, i);
 
         if (PyRRD_String_Check(o))
@@ -81,7 +83,7 @@ convert_args(char *command, PyObject *args)
         else if (PyList_CheckExact(o))
             element_count += PyList_Size(o);
         else {
-            PyErr_Format(rrdtool_ProgrammingError,
+            PyErr_Format(PyExc_TypeError,
                          "Argument %d must be str or a list of str", i);
             return -1;
         }
@@ -92,7 +94,7 @@ convert_args(char *command, PyObject *args)
     if (rrdtool_argv == NULL)
         return -1;
 
-    for (i = 0, args_count = 0; i < args_count; i++) {
+    for (i = 0; i < args_count; i++) {
         o = PyTuple_GET_ITEM(args, i);
 
         if (PyRRD_String_Check(o))
@@ -101,11 +103,11 @@ convert_args(char *command, PyObject *args)
             for (j = 0; j < PyList_Size(o); j++) {
                 lo = PyList_GetItem(o, j);
 
-                if (PyRRD_String_Check(o))
-                    rrdtool_argv[++argv_count] = PyRRD_String_AS_STRING(o);
+                if (PyRRD_String_Check(lo))
+                    rrdtool_argv[++argv_count] = PyRRD_String_AS_STRING(lo);
                 else {
                     PyMem_Del(rrdtool_argv);
-                    PyErr_Format(rrdtool_ProgrammingError,
+                    PyErr_Format(PyExc_TypeError,
                       "Element %d in argument %d must be str", j, i);
                     return -1;
                 }
@@ -120,10 +122,6 @@ convert_args(char *command, PyObject *args)
 
     rrdtool_argv[0] = command;
     rrdtool_argc = element_count + 1;
-
-    for (i = 0; i < rrdtool_argc; i++) {
-        fprintf(stderr, "argv[%d] = '%s'\n", i, rrdtool_argv[i]);
-    }
 
     /* reset getopt state */
     opterr = optind = 0;
@@ -849,11 +847,9 @@ _rrdtool_lastupdate(PyObject *self, PyObject *args)
     if (convert_args("lastupdate", args) == -1)
         return NULL;
     else if (rrdtool_argc < 2) {
-        PyErr_SetString(rrdtool_ProgrammingError, "Required arguments missing");
+        PyErr_SetString(rrdtool_ProgrammingError, "Missing filename argument");
         return NULL;
     }
-
-    printf("Using '%s'\n", rrdtool_argv[1]);
 
     status = rrd_lastupdate_r(rrdtool_argv[1],
                               &last_update,
@@ -872,7 +868,7 @@ _rrdtool_lastupdate(PyObject *self, PyObject *args)
         ds_dict = PyDict_New();
 
         PyDict_SetItemString(ret,
-            PyRRD_String_FromString("date"),
+            "date",
             PyDateTime_FromDateAndTime(
                 ts->tm_year + 1900,
                 ts->tm_mon + 1,
@@ -881,14 +877,12 @@ _rrdtool_lastupdate(PyObject *self, PyObject *args)
                 ts->tm_min,
                 ts->tm_sec,
                 0));
-        PyDict_SetItemString(ret,
-            PyRRD_String_FromString("ds"),
-            ds_dict);
+        PyDict_SetItemString(ret, "ds", ds_dict);
 
         for (i = 0; i < ds_cnt; i++) {
             PyDict_SetItemString(ds_dict,
-                PyRRD_String_FromString(ds_names[i]),
-                PyLong_FromString(last_ds[i], NULL, 10));
+                ds_names[i],
+                PyRRD_Int_FromString(last_ds[i], NULL, 10));
             free(last_ds[i]);
             free(ds_names[i]);
         }
