@@ -880,9 +880,19 @@ _rrdtool_lastupdate(PyObject *self, PyObject *args)
         PyDict_SetItemString(ret, "ds", ds_dict);
 
         for (i = 0; i < ds_cnt; i++) {
-            PyDict_SetItemString(ds_dict,
-                ds_names[i],
-                PyRRD_Int_FromString(last_ds[i], NULL, 10));
+            PyObject* val = Py_None;
+
+            double num;
+            if (sscanf(last_ds[i], "%lf", &num) == 1) {
+                val = PyFloat_FromDouble(num);
+            }
+
+            if (!val)
+                return NULL;
+
+            PyDict_SetItemString(ds_dict, ds_names[i], val);
+            Py_DECREF(val);
+
             free(last_ds[i]);
             free(ds_names[i]);
         }
