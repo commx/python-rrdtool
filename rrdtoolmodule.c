@@ -45,7 +45,7 @@
 #endif
 
 /** Binding version. */
-static const char *_version = "0.1.2";
+static const char *_version = "0.1.3";
 
 /** Exception types. */
 static PyObject *rrdtool_OperationalError;
@@ -428,7 +428,6 @@ _rrdtool_flushcached(PyObject *self, PyObject *args)
     return ret;
 }
 
-#ifdef HAVE_RRD_GRAPH
 static char _rrdtool_graph__doc__[] = "Create a graph based on one or more " \
   "RRDs.\n\n\
   Usage: graph(args..)\n\
@@ -665,7 +664,6 @@ _rrdtool_xport(PyObject *self, PyObject *args)
 
     return ret;
 }
-#endif /* HAVE_RRD_GRAPH */
 
 static char _rrdtool_tune__doc__[] = "Modify some basic properties of a " \
   "Round Robin Database.\n\n\

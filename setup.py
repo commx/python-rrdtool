@@ -4,20 +4,21 @@ try:
 except ImportError:
     from distutils.core import setup, Extension
 
+
 def main():
     module = Extension('rrdtool',
                        sources=['rrdtoolmodule.c'],
-                       include_dirs = ['/opt/local/include'],
+                       include_dirs=['/opt/local/include'],
                        libraries=['rrd'])
 
     kwargs = dict(
-        name='python-rrdtool',
-        version='0.1.2',
+        name='rrdtool',
+        version='0.1.3',
         description='rrdtool bindings for Python',
         keywords=['rrdtool'],
         author='Christian Jurk, Hye-Shik Chang',
         author_email='commx@commx.ws',
-        license='GPL',
+        license='LGPL',
         url='https://github.com/commx/python-rrdtool',
         ext_modules=[module],
     )
