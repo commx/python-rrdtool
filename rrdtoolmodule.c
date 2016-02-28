@@ -45,7 +45,7 @@
 #endif
 
 /** Binding version. */
-static const char *_version = "0.1.3";
+static const char *_version = "0.1.4";
 
 /** Exception types. */
 static PyObject *rrdtool_OperationalError;
@@ -933,14 +933,12 @@ static PyMethodDef rrdtool_methods[] = {
      METH_VARARGS, _rrdtool_fetch__doc__},
     {"flushcached", (PyCFunction)_rrdtool_flushcached,
      METH_VARARGS, _rrdtool_flushcached__doc__},
-#ifdef HAVE_RRD_GRAPH
     {"graph", (PyCFunction)_rrdtool_graph,
      METH_VARARGS, _rrdtool_graph__doc__},
     {"graphv", (PyCFunction)_rrdtool_graphv,
      METH_VARARGS, _rrdtool_graphv__doc__},
     {"xport", (PyCFunction)_rrdtool_xport,
      METH_VARARGS, _rrdtool_xport__doc__},
-#endif
     {"tune", (PyCFunction)_rrdtool_tune,
      METH_VARARGS, _rrdtool_tune__doc__},
     {"first", (PyCFunction)_rrdtool_first,

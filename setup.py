@@ -13,7 +13,7 @@ def main():
 
     kwargs = dict(
         name='rrdtool',
-        version='0.1.3',
+        version='0.1.4',
         description='rrdtool bindings for Python',
         keywords=['rrdtool'],
         author='Christian Jurk, Hye-Shik Chang',
