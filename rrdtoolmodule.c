@@ -31,7 +31,7 @@
 #define HAVE_PY3K
 #define PyRRD_String_Check(x)      PyUnicode_Check(x)
 #define PyRRD_String_FromString(x) PyUnicode_FromString(x)
-#define PyRRD_String_AS_STRING(x)  PyBytes_AsString(PyUnicode_AsUTF8String(o))
+#define PyRRD_String_AS_STRING(x)  PyUnicode_AsUTF8(x)
 #define PyRRD_String_FromStringAndSize(x, y)  PyBytes_FromStringAndSize(x, y)
 #define PyRRD_Int_FromLong(x)      PyLong_FromLong(x)
 #define PyRRD_Int_FromString(x, y, z)  PyLong_FromString(x,y,z)
