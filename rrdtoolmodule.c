@@ -44,8 +44,16 @@
 #define PyRRD_Int_FromString(x, y, z)  PyInt_FromString(x,y,z)
 #endif
 
+#ifndef Py_UNUSED
+#ifdef __GNUC__
+ #define Py_UNUSED(name) _unused_ ## name __attribute__((unused))
+#else
+ #define Py_UNUSED(name) _unused_ ## -name
+#endif
+#endif
+
 /** Binding version. */
-static const char *_version = "0.1.4";
+static const char *_version = "0.1.5";
 
 /** Exception types. */
 static PyObject *rrdtool_OperationalError;
@@ -212,14 +220,19 @@ static char _rrdtool_create__doc__[] = "Create a new Round Robin Database.\n\n\
   http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html";
 
 static PyObject *
-_rrdtool_create(PyObject *self, PyObject *args)
+_rrdtool_create(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret;
+    int status;
 
     if (convert_args("create", args) == -1)
         return NULL;
 
-	if (rrd_create(rrdtool_argc, rrdtool_argv) == -1) {
+    Py_BEGIN_ALLOW_THREADS
+    status = rrd_create(rrdtool_argc, rrdtool_argv);
+    Py_END_ALLOW_THREADS
+
+	if (status == -1) {
 		PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
 		rrd_clear_error();
 		ret = NULL;
@@ -244,14 +257,19 @@ static char _rrdtool_dump__doc__[] = "Dump an RRD to XML.\n\n\
   http://oss.oetiker.ch/rrdtool/doc/rrddump.en.html";
 
 static PyObject *
-_rrdtool_dump(PyObject *self, PyObject *args)
+_rrdtool_dump(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret;
+    int status;
 
     if (convert_args("dump", args) == -1)
         return NULL;
 
-    if (rrd_dump(rrdtool_argc, rrdtool_argv) != 0) {
+    Py_BEGIN_ALLOW_THREADS
+    status = rrd_dump(rrdtool_argc, rrdtool_argv);
+    Py_END_ALLOW_THREADS
+
+    if (status != 0) {
         PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
         rrd_clear_error();
         ret = NULL;
@@ -276,14 +294,19 @@ static char _rrdtool_update__doc__[] = "Store a new set of values into\
   http://oss.oetiker.ch/rrdtool/doc/rrdupdate.en.html";
 
 static PyObject *
-_rrdtool_update(PyObject *self, PyObject *args)
+_rrdtool_update(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret;
+    int status;
 
     if (convert_args("update", args) == -1)
         return NULL;
 
-    if (rrd_update(rrdtool_argc, rrdtool_argv) == -1) {
+    Py_BEGIN_ALLOW_THREADS
+    status = rrd_update(rrdtool_argc, rrdtool_argv);
+    Py_END_ALLOW_THREADS
+
+    if (status == -1) {
         PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
         rrd_clear_error();
         ret = NULL;
@@ -302,7 +325,7 @@ static char _rrdtool_updatev__doc__[] = "Store a new set of values into "\
   info dictionary instead of None.";
 
 static PyObject *
-_rrdtool_updatev(PyObject *self, PyObject *args)
+_rrdtool_updatev(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret;
     rrd_info_t *data;
@@ -310,7 +333,11 @@ _rrdtool_updatev(PyObject *self, PyObject *args)
     if (convert_args("updatev", args) == -1)
         return NULL;
 
-    if ((data = rrd_update_v(rrdtool_argc, rrdtool_argv)) == NULL) {
+    Py_BEGIN_ALLOW_THREADS
+    data = rrd_update_v(rrdtool_argc, rrdtool_argv);
+    Py_END_ALLOW_THREADS
+
+    if (data == NULL) {
         PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
         rrd_clear_error();
         ret = NULL;
@@ -337,19 +364,24 @@ static char _rrdtool_fetch__doc__[] = "Fetch data from an RRD.\n\n\
   http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html";
 
 static PyObject *
-_rrdtool_fetch(PyObject *self, PyObject *args)
+_rrdtool_fetch(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret, *range_tup, *dsnam_tup, *data_list, *t;
     rrd_value_t *data, *datai, dv;
     unsigned long step, ds_cnt, i, j, row;
     time_t start, end;
     char **ds_namv;
+    int status;
 
     if (convert_args("fetch", args) == -1)
         return NULL;
 
-    if (rrd_fetch(rrdtool_argc, rrdtool_argv, &start, &end, &step, &ds_cnt,
-                  &ds_namv, &data) == -1) {
+    Py_BEGIN_ALLOW_THREADS
+    status = rrd_fetch(rrdtool_argc, rrdtool_argv, &start, &end, &step,
+                       &ds_cnt, &ds_namv, &data);
+    Py_END_ALLOW_THREADS
+
+    if (status == -1) {
         PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
         rrd_clear_error();
         ret = NULL;
@@ -408,14 +440,19 @@ static char _rrdtool_flushcached__doc__[] = "Flush RRD files from memory.\n\n\
   http://oss.oetiker.ch/rrdtool/doc/rrdflushcached.en.html";
 
 static PyObject *
-_rrdtool_flushcached(PyObject *self, PyObject *args)
+_rrdtool_flushcached(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret;
+    int status;
 
     if (convert_args("flushcached", args) == -1)
         return NULL;
 
-    if (rrd_flushcached(rrdtool_argc, rrdtool_argv) != 0) {
+    Py_BEGIN_ALLOW_THREADS
+    status = rrd_flushcached(rrdtool_argc, rrdtool_argv);
+    Py_END_ALLOW_THREADS
+
+    if (status != 0) {
         PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
         rrd_clear_error();
         ret = NULL;
@@ -493,18 +530,22 @@ static char _rrdtool_graph__doc__[] = "Create a graph based on one or more " \
   http://oss.oetiker.ch/rrdtool/doc/rrdgraph.en.html";
 
 static PyObject *
-_rrdtool_graph(PyObject *self, PyObject *args, PyObject *kwargs)
+_rrdtool_graph(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret;
-    int xsize, ysize, i;
+    int xsize, ysize, i, status;
     double ymin, ymax;
     char **calcpr;
 
     if (convert_args("graph", args) == -1)
         return NULL;
 
-    if (rrd_graph(rrdtool_argc, rrdtool_argv, &calcpr, &xsize, &ysize, NULL,
-                  &ymin, &ymax) == -1) {
+    Py_BEGIN_ALLOW_THREADS
+    status = rrd_graph(rrdtool_argc, rrdtool_argv, &calcpr, &xsize, &ysize,
+                       NULL, &ymin, &ymax);
+    Py_END_ALLOW_THREADS
+
+    if (status == -1) {
         PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
         rrd_clear_error();
         ret = NULL;
@@ -544,7 +585,7 @@ static char _rrdtool_graphv__doc__[] = "Create a graph based on one or more " \
   http://oss.oetiker.ch/rrdtool/doc/rrdgraph.en.html";
 
 static PyObject *
-_rrdtool_graphv(PyObject *self, PyObject *args)
+_rrdtool_graphv(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret;
     rrd_info_t *data;
@@ -552,7 +593,11 @@ _rrdtool_graphv(PyObject *self, PyObject *args)
     if (convert_args("graphv", args) == -1)
         return NULL;
 
-    if ((data = rrd_graph_v(rrdtool_argc, rrdtool_argv)) == NULL) {
+    Py_BEGIN_ALLOW_THREADS
+    data = rrd_graph_v(rrdtool_argc, rrdtool_argv);
+    Py_END_ALLOW_THREADS
+
+    if (data == NULL) {
         PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
         rrd_clear_error();
         ret = NULL;
@@ -583,10 +628,10 @@ static char _rrdtool_xport__doc__[] = "Dictionary representation of data " \
   http://oss.oetiker.ch/rrdtool/doc/rrdxport.en.html";
 
 static PyObject *
-_rrdtool_xport(PyObject *self, PyObject *args)
+_rrdtool_xport(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret;
-    int xsize;
+    int xsize, status;
     char **legend_v;
     time_t start, end;
     unsigned long step, col_cnt;
@@ -595,8 +640,12 @@ _rrdtool_xport(PyObject *self, PyObject *args)
     if (convert_args("xport", args) == -1)
         return NULL;
 
-    if (rrd_xport(rrdtool_argc, rrdtool_argv, &xsize, &start, &end, &step,
-                  &col_cnt, &legend_v, &data) == -1) {
+    Py_BEGIN_ALLOW_THREADS
+    status = rrd_xport(rrdtool_argc, rrdtool_argv, &xsize, &start, &end, &step,
+                       &col_cnt, &legend_v, &data);
+    Py_END_ALLOW_THREADS
+
+    if (status == -1) {
         PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
         rrd_clear_error();
         ret = NULL;
@@ -679,14 +728,19 @@ static char _rrdtool_tune__doc__[] = "Modify some basic properties of a " \
   http://oss.oetiker.ch/rrdtool/doc/rrdtune.en.html";
 
 static PyObject *
-_rrdtool_tune(PyObject *self, PyObject *args)
+_rrdtool_tune(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret;
+    int status;
 
     if (convert_args("tune", args) == -1)
         return NULL;
 
-    if (rrd_tune(rrdtool_argc, rrdtool_argv) == -1) {
+    Py_BEGIN_ALLOW_THREADS
+    status = rrd_tune(rrdtool_argc, rrdtool_argv);
+    Py_END_ALLOW_THREADS
+
+    if (status == -1) {
         PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
         rrd_clear_error();
         ret = NULL;
@@ -710,7 +764,7 @@ static char _rrdtool_first__doc__[] = "Get the first UNIX timestamp of the "\
   http://oss.oetiker.ch/rrdtool/doc/rrdfirst.en.html";
 
 static PyObject *
-_rrdtool_first(PyObject *self, PyObject *args)
+_rrdtool_first(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret;
     int ts;
@@ -718,7 +772,11 @@ _rrdtool_first(PyObject *self, PyObject *args)
     if (convert_args("first", args) == -1)
         return NULL;
 
-    if ((ts = rrd_first(rrdtool_argc, rrdtool_argv)) == -1) {
+    Py_BEGIN_ALLOW_THREADS
+    ts = rrd_first(rrdtool_argc, rrdtool_argv);
+    Py_END_ALLOW_THREADS
+
+    if (ts == -1) {
         PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
         rrd_clear_error();
         ret = NULL;
@@ -739,7 +797,7 @@ static char _rrdtool_last__doc__[] = "Get the UNIX timestamp of the most "\
   http://oss.oetiker.ch/rrdtool/doc/rrdlast.en.html";
 
 static PyObject *
-_rrdtool_last(PyObject *self, PyObject *args)
+_rrdtool_last(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret;
     int ts;
@@ -747,7 +805,11 @@ _rrdtool_last(PyObject *self, PyObject *args)
     if (convert_args("last", args) == -1)
         return NULL;
 
-    if ((ts = rrd_last(rrdtool_argc, rrdtool_argv)) == -1) {
+    Py_BEGIN_ALLOW_THREADS
+    ts = rrd_last(rrdtool_argc, rrdtool_argv);
+    Py_END_ALLOW_THREADS
+
+    if (ts == -1) {
         PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
         rrd_clear_error();
         ret = NULL;
@@ -770,15 +832,19 @@ static char _rrdtool_resize__doc__[] = "Modify the number of rows in a "\
   http://oss.oetiker.ch/rrdtool/doc/rrdlast.en.html";
 
 static PyObject *
-_rrdtool_resize(PyObject *self, PyObject *args)
+_rrdtool_resize(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret;
-    int ts;
+    int status;
 
     if (convert_args("resize", args) == -1)
         return NULL;
 
-    if ((ts = rrd_resize(rrdtool_argc, rrdtool_argv)) == -1) {
+    Py_BEGIN_ALLOW_THREADS
+    status = rrd_resize(rrdtool_argc, rrdtool_argv);
+    Py_END_ALLOW_THREADS
+
+    if (status == -1) {
         PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
         rrd_clear_error();
         ret = NULL;
@@ -802,7 +868,7 @@ static char _rrdtool_info__doc__[] = "Extract header information from an "\
   http://oss.oetiker.ch/rrdtool/doc/rrdinfo.en.html";
 
 static PyObject *
-_rrdtool_info(PyObject *self, PyObject *args)
+_rrdtool_info(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret;
     rrd_info_t *data;
@@ -810,7 +876,11 @@ _rrdtool_info(PyObject *self, PyObject *args)
     if (convert_args("info", args) == -1)
         return NULL;
 
-    if ((data = rrd_info(rrdtool_argc, rrdtool_argv)) == NULL) {
+    Py_BEGIN_ALLOW_THREADS
+    data = rrd_info(rrdtool_argc, rrdtool_argv);
+    Py_END_ALLOW_THREADS
+
+    if (data == NULL) {
         PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
         rrd_clear_error();
         ret = NULL;
@@ -833,10 +903,9 @@ static char _rrdtool_lastupdate__doc__[] = "Returns datetime and value stored "\
   http://oss.oetiker.ch/rrdtool/doc/rrdlastupdate.en.html";
 
 static PyObject *
-_rrdtool_lastupdate(PyObject *self, PyObject *args)
+_rrdtool_lastupdate(PyObject *Py_UNUSED(self), PyObject *args)
 {
     PyObject *ret, *ds_dict;
-    rrd_info_t *data;
     int status;
     time_t last_update;
     char **ds_names, **last_ds;
@@ -849,11 +918,13 @@ _rrdtool_lastupdate(PyObject *self, PyObject *args)
         return NULL;
     }
 
+    Py_BEGIN_ALLOW_THREADS
     status = rrd_lastupdate_r(rrdtool_argv[1],
                               &last_update,
                               &ds_cnt,
                               &ds_names,
                               &last_ds);
+    Py_END_ALLOW_THREADS
 
     if (status != 0) {
         PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
@@ -914,14 +985,14 @@ static char _rrdtool_lib_version__doc__[] = "Get the version this binding "\
  * @return librrd version (Python str object)
  */
 static PyObject *
-_rrdtool_lib_version(PyObject *self, PyObject *args)
+_rrdtool_lib_version(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
 {
     return PyRRD_String_FromString(rrd_strversion());
 }
 
 /** Method table. */
 static PyMethodDef rrdtool_methods[] = {
-	{"create", (PyCFunction)_rrdtool_create,
+    {"create", (PyCFunction)_rrdtool_create,
      METH_VARARGS, _rrdtool_create__doc__},
     {"dump", (PyCFunction)_rrdtool_dump,
      METH_VARARGS, _rrdtool_dump__doc__},
@@ -959,11 +1030,11 @@ static PyMethodDef rrdtool_methods[] = {
 /** Library init function. */
 #ifdef HAVE_PY3K
 static struct PyModuleDef rrdtoolmodule = {
-	PyModuleDef_HEAD_INIT,
-	"rrdtool",
-	"rrdtool bindings for Python",
-	-1,
-	rrdtool_methods
+	.m_base = PyModuleDef_HEAD_INIT,
+	.m_name = "rrdtool",
+	.m_doc = "rrdtool bindings for Python",
+	.m_size = -1,
+	.m_methods = rrdtool_methods
 };
 
 #endif
