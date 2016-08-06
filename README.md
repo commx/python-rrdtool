@@ -31,3 +31,7 @@ rrdtool.create('test.rrd', '--start', 'now', '--step', '300', 'RRA:AVERAGE:0.5:1
 rrdtool.update('test.rrd', 'N:32')
 ```
 
+Documentation
+-------------
+
+You can find the latest documentation for this project at http://pythonhosted.org/rrdtool.
