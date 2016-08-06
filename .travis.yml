@@ -12,5 +12,3 @@ addons:
   apt:
     packages:
     - librrd-dev
-    - libpython-dev
-    - libpython3-dev
