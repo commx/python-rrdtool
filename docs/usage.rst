@@ -32,7 +32,8 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: None
 
 .. function:: dump(*args)
@@ -41,7 +42,8 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: None
 
 .. function:: fetch(*args)
@@ -50,7 +52,8 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: tuple
 
    Example::
@@ -66,7 +69,8 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: int
 
 .. function:: flushcached(*args)
@@ -75,7 +79,8 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: None
 
 .. function:: graph(*args)
@@ -84,7 +89,8 @@ The function calls are converted to appropriate values and mapped to their librr
    
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: tuple
 
    Example::
@@ -102,8 +108,24 @@ The function calls are converted to appropriate values and mapped to their librr
    
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: dict
+
+   Example::
+
+      >>> rrdtool.graphv("-", *args)
+      {
+          'graph_end': 1470478967,
+          'graph_height': 100,
+          'graph_left': 51,
+          'graph_top': 15,
+          'graph_start': 1470392567,
+          'graph_width': 400,
+          'image': '\x99PNG\r\n…',
+          'image_height': 155,
+          'image_width': 481,
+      }
 
 .. function:: info(*args)
 
@@ -111,13 +133,31 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: dict
 
    Example::
 
       >>> rrdtool.info("test.rrd")
-      {'rra[0].pdp_per_row': 1L, 'rra[0].rows': 1200L, 'ds[temp].last_ds': '32', 'ds[temp].type': 'GAUGE', 'rra[0].cur_row': 673L, 'rrd_version': '0003', 'ds[temp].unknown_sec': 209L, 'header_size': 584L, 'last_update': 1470441516L, 'step': 300L, 'rra[0].cf': 'AVERAGE', 'rra[0].cdp_prep[0].unknown_datapoints': 0L, 'rra[0].cdp_prep[0].value': None, 'ds[temp].minimal_heartbeat': 600L, 'filename': 'test.rrd', 'ds[temp].index': 0L}
+      {
+          'rra[0].pdp_per_row': 1,
+          'rra[0].rows': 1200,
+          'ds[temp].last_ds': '32',
+          'ds[temp].type': 'GAUGE',
+          'rra[0].cur_row': 673,
+          'rrd_version': '0003',
+          'ds[temp].unknown_sec': 209,
+          'header_size': 584,
+          'last_update': 1470441516,
+          'step': 300,
+          'rra[0].cf': 'AVERAGE',
+          'rra[0].cdp_prep[0].unknown_datapoints': 0,
+          'rra[0].cdp_prep[0].value': None,
+          'ds[temp].minimal_heartbeat': 600,
+          'filename': 'test.rrd',
+          'ds[temp].index': 0
+      }
 
 .. function:: last(*args)
 
@@ -125,7 +165,8 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: int
 
 .. function:: lastupdate(*args)
@@ -134,13 +175,19 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: dict
 
    Example::
 
       >>> rrdtool.lastupdate("test.rrd")
-      {'date': datetime.datetime(2016, 8, 6, 1, 58, 36), 'ds': {'temp': 32.0}}
+      {
+          'date': datetime.datetime(2016, 8, 6, 1, 58, 36),
+          'ds': {
+              'temp': 32.0
+           }
+      }
 
 .. function:: lib_version()
 
@@ -148,13 +195,19 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :rtype: str
 
+   Example::
+
+      >>> rrdtool.lib_version()
+      '1.4.8'
+
 .. function:: resize(*args)
 
    Modify the number of rows in an RRD.
 
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: None
 
 .. function:: tune(*args)
@@ -163,7 +216,8 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: None
 
 .. function:: update(*args)
@@ -172,7 +226,8 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: None
 
 .. function:: updatev(*args)
@@ -181,7 +236,8 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: dict
 
 .. function:: xport(*args)
@@ -190,24 +246,25 @@ The function calls are converted to appropriate values and mapped to their librr
    
    :param args: Arguments
    :type args: tuple
-   :raises: ProgrammingError or OperationalError
+   :raises ProgrammingError: in the event of an programming error
+   :raises OperationalError: in the event of an rrdtool error
    :rtype: dict
 
    Example::
 
       >>> rrdtool.xport("DEF:a=test.rrd:temp:AVERAGE", *args)
       {
-          "meta": {
-              "start": 1234567890,
-              "end": 1234567890,
-              "step": 300,
-              "rows": 128,
-              "columns": 1,
-              "legend": [
-                  "item_a"
+          'meta': {
+              'start': 1234567890,
+              'end': 1234567890,
+              'step': 300,
+              'rows': 128,
+              'columns': 1,
+              'legend': [
+                  'item_a'
               ]
           },
-          "data": [
+          'data': [
               None,
               None,
               1.927492222,
@@ -219,6 +276,13 @@ The function calls are converted to appropriate values and mapped to their librr
 .. py:attribute:: __version__
 
    Returns the version of python-rrdtool.
+
+   :rtype: str
+   
+   Example::
+
+      >>> rrdtool.__version__
+      '0.1.5'
 
 Errors and Exceptions
 ---------------------
