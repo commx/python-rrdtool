@@ -12,3 +12,4 @@ addons:
   apt:
     packages:
     - librrd-dev
+script: nosetests
