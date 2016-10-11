@@ -210,7 +210,7 @@ static char _rrdtool_create__doc__[] = "Create a new Round Robin Database.\n\n\
     filename\n\
     [-b|--start start time]\n\
     [-s|--step step]\n\
-    [-t|--template temolate-file]\n\
+    [-t|--template template-file]\n\
     [-r|--source source-file]\n\
     [-O|--no-overwrite]\n\
     [-d|--daemon address]\n\
