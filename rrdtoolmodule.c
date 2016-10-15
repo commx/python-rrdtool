@@ -1,5 +1,5 @@
 /*
- * python-rrdtool, rrdtool bindings for Python.
+ * python-rrdtool, Python bindings for rrdtool.
  * Based on the rrdtool Python bindings for Python 2 from
  * Hye-Shik Chang <perky@fallin.lv>.
  *
@@ -7,7 +7,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3 of the
+ * published by the Free Software Foundation; either version 2.1 of the
  * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -29,19 +29,19 @@
 /* Some macros to maintain compatibility between Python 2.x and 3.x */
 #if PY_MAJOR_VERSION >= 3
 #define HAVE_PY3K
-#define PyRRD_String_Check(x)      PyUnicode_Check(x)
-#define PyRRD_String_FromString(x) PyUnicode_FromString(x)
-#define PyRRD_String_AS_STRING(x)  PyUnicode_AsUTF8(x)
+#define PyRRD_String_Check(x)                 PyUnicode_Check(x)
+#define PyRRD_String_FromString(x)            PyUnicode_FromString(x)
+#define PyRRD_String_AS_STRING(x)             PyUnicode_AsUTF8(x)
 #define PyRRD_String_FromStringAndSize(x, y)  PyBytes_FromStringAndSize(x, y)
-#define PyRRD_Int_FromLong(x)      PyLong_FromLong(x)
-#define PyRRD_Int_FromString(x, y, z)  PyLong_FromString(x,y,z)
+#define PyRRD_Int_FromLong(x)                 PyLong_FromLong(x)
+#define PyRRD_Int_FromString(x, y, z)         PyLong_FromString(x,y,z)
 #else
-#define PyRRD_String_Check(x)      PyString_Check(x)
-#define PyRRD_String_FromString(x) PyString_FromString(x)
-#define PyRRD_String_AS_STRING(x)  PyString_AS_STRING(x)
-#define PyRRD_String_FromStringAndSize(x, y) PyString_FromStringAndSize(x, y)
-#define PyRRD_Int_FromLong(x)      PyInt_FromLong(x)
-#define PyRRD_Int_FromString(x, y, z)  PyInt_FromString(x,y,z)
+#define PyRRD_String_Check(x)                 PyString_Check(x)
+#define PyRRD_String_FromString(x)            PyString_FromString(x)
+#define PyRRD_String_AS_STRING(x)             PyString_AS_STRING(x)
+#define PyRRD_String_FromStringAndSize(x, y)  PyString_FromStringAndSize(x, y)
+#define PyRRD_Int_FromLong(x)                 PyInt_FromLong(x)
+#define PyRRD_Int_FromString(x, y, z)         PyInt_FromString(x,y,z)
 #endif
 
 #ifndef Py_UNUSED
@@ -53,18 +53,14 @@
 #endif
 
 /** Binding version. */
-static const char *_version = "0.1.5";
+static const char *_version = "0.1.6";
 
 /** Exception types. */
 static PyObject *rrdtool_OperationalError;
 static PyObject *rrdtool_ProgrammingError;
 
 static char **rrdtool_argv = NULL;
-static int rrdtool_argc = 0;
-
-/* extern getopt state */
-extern int optind, opterr;
-
+static int    rrdtool_argc = 0;
 
 /**
  * Helper function to convert Python objects into a representation that the
@@ -130,9 +126,6 @@ convert_args(char *command, PyObject *args)
 
     rrdtool_argv[0] = command;
     rrdtool_argc = element_count + 1;
-
-    /* reset getopt state */
-    opterr = optind = 0;
 
     return 0;
 }
@@ -232,16 +225,16 @@ _rrdtool_create(PyObject *Py_UNUSED(self), PyObject *args)
     status = rrd_create(rrdtool_argc, rrdtool_argv);
     Py_END_ALLOW_THREADS
 
-	if (status == -1) {
-		PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
-		rrd_clear_error();
-		ret = NULL;
-	} else {
+    if (status == -1) {
+        PyErr_SetString(rrdtool_OperationalError, rrd_get_error());
+        rrd_clear_error();
+        ret = NULL;
+    } else {
         Py_INCREF(Py_None);
         ret = Py_None;
     }
 
-	destroy_args();
+    destroy_args();
     return ret;
 }
 
@@ -315,7 +308,7 @@ _rrdtool_update(PyObject *Py_UNUSED(self), PyObject *args)
         ret = Py_None;
     }
 
-	destroy_args();
+    destroy_args();
     return ret;
 }
 
@@ -346,7 +339,7 @@ _rrdtool_updatev(PyObject *Py_UNUSED(self), PyObject *args)
         rrd_info_free(data);
     }
 
-	destroy_args();
+    destroy_args();
     return ret;
 }
 
@@ -461,7 +454,7 @@ _rrdtool_flushcached(PyObject *Py_UNUSED(self), PyObject *args)
         ret = Py_None;
     }
 
-	destroy_args();
+    destroy_args();
     return ret;
 }
 
@@ -1023,18 +1016,18 @@ static PyMethodDef rrdtool_methods[] = {
     {"lastupdate", (PyCFunction)_rrdtool_lastupdate,
      METH_VARARGS, _rrdtool_lastupdate__doc__},
     {"lib_version", (PyCFunction)_rrdtool_lib_version,
-     METH_VARARGS, _rrdtool_lib_version__doc__},
-	{NULL, NULL, 0, NULL}
+     METH_NOARGS, _rrdtool_lib_version__doc__},
+    {NULL, NULL, 0, NULL}
 };
 
 /** Library init function. */
 #ifdef HAVE_PY3K
 static struct PyModuleDef rrdtoolmodule = {
-	.m_base = PyModuleDef_HEAD_INIT,
-	.m_name = "rrdtool",
-	.m_doc = "rrdtool bindings for Python",
-	.m_size = -1,
-	.m_methods = rrdtool_methods
+    .m_base = PyModuleDef_HEAD_INIT,
+    .m_name = "rrdtool",
+    .m_doc = "Python bindings for rrdtool",
+    .m_size = -1,
+    .m_methods = rrdtool_methods
 };
 
 #endif
@@ -1047,35 +1040,35 @@ void
 initrrdtool(void)
 #endif
 {
-	PyObject *m;
+    PyObject *m;
 
     PyDateTime_IMPORT;  /* initialize PyDateTime_ functions */
 
 #ifdef HAVE_PY3K
-	m = PyModule_Create(&rrdtoolmodule);
+    m = PyModule_Create(&rrdtoolmodule);
 #else
     m = Py_InitModule3("rrdtool",
                        rrdtool_methods,
                        "rrdtool bindings for Python");
 #endif
 
-	if (m == NULL)
+    if (m == NULL)
 #ifdef HAVE_PY3K
         return NULL;
 #else
         return;
 #endif
 
-	rrdtool_ProgrammingError = PyErr_NewException("rrdtool.ProgrammingError",
-	                                              NULL, NULL);
-	Py_INCREF(rrdtool_ProgrammingError);
-	PyModule_AddObject(m, "ProgrammingError", rrdtool_ProgrammingError);
+    rrdtool_ProgrammingError = PyErr_NewException("rrdtool.ProgrammingError",
+                                                  NULL, NULL);
+    Py_INCREF(rrdtool_ProgrammingError);
+    PyModule_AddObject(m, "ProgrammingError", rrdtool_ProgrammingError);
 
-	rrdtool_OperationalError = PyErr_NewException("rrdtool.OperationalError",
-	                                              NULL, NULL);
-	Py_INCREF(rrdtool_OperationalError);
-	PyModule_AddObject(m, "OperationalError", rrdtool_OperationalError);
-    PyModule_AddObject(m, "__version__", PyRRD_String_FromString(_version));
+    rrdtool_OperationalError = PyErr_NewException("rrdtool.OperationalError",
+                                                  NULL, NULL);
+    Py_INCREF(rrdtool_OperationalError);
+    PyModule_AddObject(m, "OperationalError", rrdtool_OperationalError);
+    PyModule_AddStringConstant(m, "__version__", _version);
 
 #ifdef HAVE_PY3K
     return m;
