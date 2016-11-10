@@ -28,7 +28,6 @@
 
 /* Some macros to maintain compatibility between Python 2.x and 3.x */
 #if PY_MAJOR_VERSION >= 3
-#warning Compiling for Python 3.x
 #define HAVE_PY3K
 #define PyRRD_String_Check(x)                 PyUnicode_Check(x)
 #define PyRRD_String_FromString(x)            PyUnicode_FromString(x)
@@ -39,7 +38,6 @@
 #define PyRRD_Int_FromString(x, y, z)         PyLong_FromString(x,y,z)
 #define PyRRD_Long_Check(x)                   PyLong_Check(x)
 #else
-#warning Compiling for Python 2.x
 #define PyRRD_String_Check(x)                 PyString_Check(x)
 #define PyRRD_String_FromString(x)            PyString_FromString(x)
 #define PyRRD_String_AS_STRING(x)             PyString_AS_STRING(x)
@@ -77,7 +75,7 @@ static int    rrdtool_argc = 0;
  * to Python datetime object.
  *
  * @param ts UNIX timestamp (time_t)
- * @return Pointer to new PyObject
+ * @return Pointer to new PyObject (New Reference)
  */
 static PyObject *
 PyRRD_DateTime_FromTS(time_t ts)
