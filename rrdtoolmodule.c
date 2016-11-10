@@ -1187,7 +1187,7 @@ _rrdtool_fetch_cb_wrapper(
         }
 
         for (unsigned int i = 0; i < *ds_cnt; i++) {
-            for (unsigned int ii = 0; ii < rowcount; ii++) {
+            for (unsigned int ii = 0; ii < (unsigned int)rowcount; ii++) {
                 char *ds_namv_i = (*ds_namv)[i];
                 double va;
                 PyObject *lstv = PyList_GetItem(PyDict_GetItemString(tmp, ds_namv_i), ii);
