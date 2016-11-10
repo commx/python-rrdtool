@@ -26,6 +26,15 @@ Functions
 
 The function calls are converted to appropriate values and mapped to their librrd counterparts. Optional results are converted to Python representations whenever possible.
 
+.. function:: clear_fetch_cb()
+
+   Clear fetch callback.
+
+   :raises: ProgrammingError: in the event if no callback has been previously set
+   :rtype: None
+
+   .. versionadded:: 0.1.7
+
 .. function:: create(*args)
 
    Create a round robin database.
@@ -200,6 +209,78 @@ The function calls are converted to appropriate values and mapped to their librr
       >>> rrdtool.lib_version()
       '1.4.8'
 
+.. function:: register_fetch_cb(callable)
+
+   Register a callable that is used as data source rather an RRD file.
+
+   This is useful if you don't have an RRD, but still want to generate graphs
+   of data which is already present from other data sources.
+
+   The following keyword arguments are passed to the callback method:
+
+      * ``filename`` (``str``): Filename, or an identifier used on the source part of DEF definitions
+      * ``cf`` (``str``): Consolidation function (AVERAGE, MIN, MAX, LAST)
+      * ``start`` (``int``): Start UNIX timestamp
+      * ``end`` (``int``): End UNIX timestamp
+      * ``step`` (``int``): Step
+
+   :param callable: A callable method or object
+   :type callable: callable
+   :raises ProgrammingError: in the event of an programming error
+   :rtype: None
+
+   Example::
+
+      import math
+
+      graphv_args = [
+          'callback.png',
+          '--title', 'Callback Demo',
+          '--start', '1424540800',
+          '--end', 'start+24h',
+          '--lower-limit=0',
+          '--interlaced',
+          '--imgformat', 'PNG',
+          '--width=450',
+          'DEF:a=cb//extrainfo:a:AVERAGE',
+          'DEF:b=cb//:b:AVERAGE',
+          'DEF:c=cb//:c:AVERAGE',
+          'LINE:a#00b6e4:a',
+          'LINE:b#10b634:b',
+          'LINE:c#503d14:c',
+          'VDEF:av=a,AVERAGE',
+          'PRINT:av:%8.6lf'
+      ]
+
+      def my_callback(filename, cf, start, end, step):
+          itemcount = (end - start) / step
+          return {
+              'start': start,
+              'step': 300,
+              'data': {
+                  'a': [math.sin(x / 200) for x in range(0, itemcount)],
+                  'b': [math.cos(x / 200) for x in range(10, itemcount)],
+                  'c': [math.sin(x / 100) for x in range(100, itemcount)]
+              }
+          }
+
+      rrdtool.register_fetch_cb(my_callable)
+      rrdtool.graphv(**graphv_args)
+
+      # also works with callable objects
+      class MyCallable(object):
+          def __call__(self, filename, cf, start, end, step):
+              # same function body as in my_callback
+              pass
+
+      cb = MyCallable()
+      rrdtool.register_fetch_cb(cb)  # overwrite callback
+      rrdtool.graphv(**graphv_args)
+
+   .. note:: This function uses Python long integers on Python 2.x and 3.x to minimize compatibility code requirements (Python 3 has long integers as it's default int anyway).
+
+   .. versionadded:: 0.1.7
+
 .. function:: resize(*args)
 
    Modify the number of rows in an RRD.
@@ -282,7 +363,7 @@ The function calls are converted to appropriate values and mapped to their librr
    Example::
 
       >>> rrdtool.__version__
-      '0.1.5'
+      '0.1.7'
 
 Errors and Exceptions
 ---------------------

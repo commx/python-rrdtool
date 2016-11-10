@@ -1,2 +1,6 @@
 .DS_Store
-
+*.so
+*.py[co]
+__pycache__
+docs/_build
+build/

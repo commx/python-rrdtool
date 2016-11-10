@@ -14,14 +14,15 @@ def main():
 
     kwargs = dict(
         name='rrdtool',
-        version='0.1.6',
+        version='0.1.7',
         description='Python bindings for rrdtool',
         keywords=['rrdtool'],
         author='Christian Kroeger, Hye-Shik Chang',
         author_email='commx@commx.ws',
         license='LGPL',
         url='https://github.com/commx/python-rrdtool',
-        ext_modules=[module]
+        ext_modules=[module],
+        test_suite="tests"
     )
 
     setup(**kwargs)
