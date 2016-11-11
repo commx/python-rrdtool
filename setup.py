@@ -7,7 +7,7 @@ except ImportError:
 
 def main():
     module = Extension('rrdtool',
-                       sources=['rrdtoolmodule.c'],
+                       sources=['rrdtoolmodule.h', 'rrdtoolmodule.c'],
                        include_dirs=['/usr/local/include'],
                        library_dirs=['/usr/local/lib'],
                        libraries=['rrd'])
