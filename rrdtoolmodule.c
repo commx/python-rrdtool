@@ -61,7 +61,7 @@
 #endif
 
 /** Binding version. */
-static const char *_version = "0.1.7";
+static const char *_version = "0.1.8";
 
 /** Exception types. */
 static PyObject *rrdtool_OperationalError;

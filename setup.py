@@ -4,17 +4,21 @@ try:
 except ImportError:
     from distutils.core import setup, Extension
 
+import os.path
+
+# absolute path to package dir
+package_dir = os.path.abspath(os.path.dirname(__file__))
 
 def main():
     module = Extension('rrdtool',
-                       sources=['rrdtoolmodule.h', 'rrdtoolmodule.c'],
-                       include_dirs=['/usr/local/include'],
+                       sources=['rrdtoolmodule.c'],
+                       include_dirs=['/usr/local/include', package_dir],
                        library_dirs=['/usr/local/lib'],
                        libraries=['rrd'])
 
     kwargs = dict(
         name='rrdtool',
-        version='0.1.7',
+        version='0.1.8',
         description='Python bindings for rrdtool',
         keywords=['rrdtool'],
         author='Christian Kroeger, Hye-Shik Chang',
@@ -22,7 +26,7 @@ def main():
         license='LGPL',
         url='https://github.com/commx/python-rrdtool',
         ext_modules=[module],
-        test_suite="tests"
+        test_suite='tests'
     )
 
     setup(**kwargs)
