@@ -18,7 +18,7 @@ def main():
 
     kwargs = dict(
         name='rrdtool',
-        version='0.1.8',
+        version='0.1.9',
         description='Python bindings for rrdtool',
         keywords=['rrdtool'],
         author='Christian Kroeger, Hye-Shik Chang',
