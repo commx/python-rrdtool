@@ -7,9 +7,8 @@ python:
   - "3.4"
   - "3.5"
   - "nightly"
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y librrd-dev
 install: python setup.py install
-addons:
-  apt:
-    packages:
-    - librrd-dev
 script: nosetests
