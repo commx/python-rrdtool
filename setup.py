@@ -34,12 +34,12 @@ def check_extensions():
         macros = [macro for macro in macros if macro[0] != 'WITH_FETCH_CB']
 
         try:
-            return compile_extensions(macros)
+            return compile_extensions(macros, compat=True)
         except LinkError:
             sys.exit('Error: Unable to link binary module. Do you have the rrdtool header and libraries installed?')
 
 
-def compile_extensions(macros):
+def compile_extensions(macros, compat=False):
     """
     Compiler subroutine to test whether some functions are available
     on the target system. Since the rrdtool headers shipped with most
@@ -65,7 +65,12 @@ def compile_extensions(macros):
         include_dirs=include_dirs,
         library_dirs=library_dirs,
         define_macros=macros)
+    exts = [Extension('rrdtool', sources=['rrdtoolmodule.c'], **compiler_args)]
 
+    if compat:
+        return exts
+
+    # in non-compat mode, try to link to check if the new symbols are present in librrd
     c_code = dedent('''
         #include <rrd.h>
         #include "rrdtoolmodule.h"
@@ -105,11 +110,10 @@ def compile_extensions(macros):
         sys.exit('Error: Unable to compile the binary module. Do you have the rrdtool header and libraries installed?')
         ret = None
     except LinkError as exc:
-        raise  # reraise
+        shutil.rmtree(tmp_dir)
+        raise  # re-raise
     else:
-        ret = [
-            Extension('rrdtool', sources=['rrdtoolmodule.c'], **compiler_args)
-        ]
+        return exts  # seems to be available, compile in regular way
 
     shutil.rmtree(tmp_dir)
     return ret
