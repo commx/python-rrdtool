@@ -14,6 +14,9 @@ class TestFetchCallback(unittest.TestCase):
             return self.assertRaisesRegexp(*args, **kwargs)
 
     def setUp(self):
+        if not hasattr(rrdtool, 'register_fetch_cb'):
+            raise unittest.SkipTest('register_fetch_cb not available')
+
         self.graphv_args = [
             '-',
             '--title', 'Callback Demo',
