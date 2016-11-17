@@ -1,31 +1,142 @@
-try:
-    from setuptools import setup
-    from setuptools.extension import Extension
-except ImportError:
-    from distutils.core import setup, Extension
-
 import os.path
+import sys
+
+try:
+    from setuptools import setup, Extension
+except ImportError:
+    sys.exit('The setup requires setuptools.')
+
+from distutils.errors import CompileError, LinkError
 
 # absolute path to package dir
 package_dir = os.path.abspath(os.path.dirname(__file__))
 
-def main():
-    module = Extension('rrdtool',
-                       sources=['rrdtoolmodule.c'],
-                       include_dirs=['/usr/local/include', package_dir],
-                       library_dirs=['/usr/local/lib'],
-                       libraries=['rrd'])
+# package version
+package_version = '0.1.10'
 
+
+def check_extensions():
+    macros = [
+        ('PACKAGE_VERSION', '"%s"' % package_version),
+    ]
+
+    # for compatibility reasons, don't define WITH_FETCH_CB, so binary packages
+    # will still work with older rrdtool versions
+    if not os.environ.get('OLDCOMPAT'):
+        macros.append(('WITH_FETCH_CB', 1))
+
+    try:
+        return compile_extensions(macros)
+    except LinkError:
+        sys.stderr.write('Warning: Seems like your rrdtool version does not support fetch callbacks, recompiling.')
+
+        # try to recompile without WITH_FETCH_CB
+        macros = [macro for macro in macros if macro[0] != 'WITH_FETCH_CB']
+
+        try:
+            return compile_extensions(macros)
+        except LinkError:
+            sys.exit('Error: Unable to link binary module. Do you have the rrdtool header and libraries installed?')
+
+
+def compile_extensions(macros):
+    """
+    Compiler subroutine to test whether some functions are available
+    on the target system. Since the rrdtool headers shipped with most
+    packages do not disclose any versioning information, we cannot test
+    whether a given function is available that way. Instead, use this to
+    manually try to compile code and see if it works.
+
+    Taken from http://stackoverflow.com/questions/28843765/setup-py-check-if-non-python-library-dependency-exists.
+    """
+    import distutils.sysconfig
+    import distutils.ccompiler
+    import tempfile
+    import shutil
+
+    from textwrap import dedent
+
+    # common vars
+    libraries = ['rrd']
+    include_dirs = [package_dir, '/usr/local/include']
+    library_dirs = ['/usr/local/lib']
+    compiler_args = dict(
+        libraries=libraries,
+        include_dirs=include_dirs,
+        library_dirs=library_dirs,
+        define_macros=macros)
+
+    c_code = dedent('''
+        #include <rrd.h>
+        #include "rrdtoolmodule.h"
+
+        int main(int argc, char *argv[]) {
+            rrd_fetch_cb_register(NULL);  /* exists in rrdtool >= 1.5.0 */
+            return 0;
+        }
+    ''')
+
+    tmp_dir = tempfile.mkdtemp(prefix='tmp_python_rrdtool')
+    bin_file_name = os.path.join(tmp_dir, 'test_rrdtool')
+    file_name = bin_file_name + '.c'
+
+    with open(file_name, 'w') as fp:
+        fp.write(c_code)
+
+    # try to compile it
+    compiler = distutils.ccompiler.new_compiler()
+    assert isinstance(compiler, distutils.ccompiler.CCompiler)
+    for s in include_dirs:
+        compiler.add_include_dir(s)
+    for s in library_dirs:
+        compiler.add_library_dir(s)
+    for s in libraries:
+        compiler.add_library(s)
+    for s in macros:
+        compiler.define_macro(*s)
+    distutils.sysconfig.customize_compiler(compiler)
+
+    try:
+        compiler.link_executable(
+            compiler.compile([file_name]),
+            bin_file_name,
+            libraries=libraries)
+    except CompileError:
+        sys.exit('Error: Unable to compile the binary module. Do you have the rrdtool header and libraries installed?')
+        ret = None
+    except LinkError as exc:
+        raise  # reraise
+    else:
+        ret = [
+            Extension('rrdtool', sources=['rrdtoolmodule.c'], **compiler_args)
+        ]
+
+    shutil.rmtree(tmp_dir)
+    return ret
+
+
+def main():
     kwargs = dict(
         name='rrdtool',
-        version='0.1.9',
+        version=package_version,
         description='Python bindings for rrdtool',
         keywords=['rrdtool'],
         author='Christian Kroeger, Hye-Shik Chang',
         author_email='commx@commx.ws',
         license='LGPL',
         url='https://github.com/commx/python-rrdtool',
-        ext_modules=[module],
+        classifiers=['License :: OSI Approved',
+                     'Operating System :: POSIX',
+                     'Operating System :: Unix',
+                     'Operating System :: MacOS',
+                     'Programming Language :: C',
+                     'Programming Language :: Python',
+                     'Programming Language :: Python :: 2.7',
+                     'Programming Language :: Python :: 3.3',
+                     'Programming Language :: Python :: 3.4',
+                     'Programming Language :: Python :: 3.5',
+        ],
+        ext_modules=check_extensions(),
         test_suite='tests'
     )
 

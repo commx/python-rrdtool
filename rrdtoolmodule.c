@@ -61,7 +61,7 @@
 #endif
 
 /** Binding version. */
-static const char *_version = "0.1.9";
+static const char *_version = PACKAGE_VERSION;
 
 /** Exception types. */
 static PyObject *rrdtool_OperationalError;
@@ -1021,6 +1021,8 @@ _rrdtool_lastupdate(PyObject *Py_UNUSED(self), PyObject *args)
     return ret;
 }
 
+#ifdef WITH_FETCH_CB
+
 /** An Python object which will hold an callable for fetch callbacks */
 static PyObject *_rrdtool_fetch_callable = NULL;
 
@@ -1277,7 +1279,7 @@ static PyObject *
 _rrdtool_clear_fetch_cb(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
 {
     if (_rrdtool_fetch_callable == NULL) {
-        PyErr_SetString(rrdtool_ProgrammingError, "no callback set");
+        PyErr_SetString(rrdtool_ProgrammingError, "no callback has been set previously");
         return NULL;
     }
 
@@ -1285,6 +1287,8 @@ _rrdtool_clear_fetch_cb(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
     rrd_fetch_cb_register(NULL);
     Py_RETURN_NONE;
 }
+
+#endif /* WITH_FETCH_CB */
 
 static char _rrdtool_lib_version__doc__[] = "Get the version this binding "\
   "was compiled against.";
@@ -1332,10 +1336,12 @@ static PyMethodDef rrdtool_methods[] = {
      METH_VARARGS, _rrdtool_info__doc__},
     {"lastupdate", (PyCFunction)_rrdtool_lastupdate,
      METH_VARARGS, _rrdtool_lastupdate__doc__},
+#ifdef WITH_FETCH_CB
     {"register_fetch_cb", (PyCFunction)_rrdtool_register_fetch_cb,
      METH_VARARGS, _rrdtool_register_fetch_cb__doc__},
     {"clear_fetch_cb", (PyCFunction)_rrdtool_clear_fetch_cb,
      METH_NOARGS, _rrdtool_clear_fetch_cb__doc__},
+#endif /* WITH_FETCH_CB */
     {"lib_version", (PyCFunction)_rrdtool_lib_version,
      METH_NOARGS, _rrdtool_lib_version__doc__},
     {NULL, NULL, 0, NULL}

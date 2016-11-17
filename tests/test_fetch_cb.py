@@ -5,7 +5,7 @@ import rrdtool
 import unittest
 import sys
 
-PY3 = sys.version_info >= (3, 0)
+PY3 = sys.version_info[0] == 3
 
 
 class TestFetchCallback(unittest.TestCase):
