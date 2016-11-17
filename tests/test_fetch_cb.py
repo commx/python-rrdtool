@@ -5,18 +5,15 @@ import rrdtool
 import unittest
 import sys
 
-PY3 = sys.version_info[0] == 3
-
 
 class TestFetchCallback(unittest.TestCase):
-    if not PY3:
-        def assertRaisesRegex(self, *args, **kwargs):
-            return self.assertRaisesRegexp(*args, **kwargs)
+    def check_skip(self):
+        if not hasattr(rrdtool, 'register_fetch_cb'):
+            if sys.version_info >= (2, 7):
+                raise unittest.SkipTest('register_fetch_cb not available')
+            return True
 
     def setUp(self):
-        if not hasattr(rrdtool, 'register_fetch_cb'):
-            raise unittest.SkipTest('register_fetch_cb not available')
-
         self.graphv_args = [
             '-',
             '--title', 'Callback Demo',
@@ -41,6 +38,9 @@ class TestFetchCallback(unittest.TestCase):
         Test whether callback return type is checked correctly.
         The callback must always return a dict.
         """
+        if self.check_skip():
+            return
+
         def my_callback(*args, **kwargs):
             return None
 
@@ -57,6 +57,9 @@ class TestFetchCallback(unittest.TestCase):
         """
         Test whether all required arguments are passed in kwargs.
         """
+        if self.check_skip():
+            return
+
         def my_callback(*args, **kwargs):
             required_args = ('filename', 'cf', 'start', 'end', 'step')
             for k in required_args:
