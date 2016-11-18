@@ -1,4 +1,4 @@
--[![Build Status](https://travis-ci.org/commx/python-rrdtool.svg?branch=master)](https://travis-ci.org/commx/python-rrdtool)
+[![Build Status](https://travis-ci.org/commx/python-rrdtool.svg?branch=master)](https://travis-ci.org/commx/python-rrdtool)
 
 python-rrdtool
 ==============

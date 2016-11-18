@@ -33,6 +33,7 @@ The function calls are converted to appropriate values and mapped to their librr
    :raises: ProgrammingError: in the event if no callback has been previously set
    :rtype: None
 
+   .. note:: This function has been added in rrdtool 1.5.0 and may not be available if compiled against an older version.
    .. versionadded:: 0.1.7
 
 .. function:: create(*args)
@@ -279,6 +280,8 @@ The function calls are converted to appropriate values and mapped to their librr
 
    .. note:: This function uses Python long integers on Python 2.x and 3.x to minimize compatibility code requirements (Python 3 has long integers as it's default int anyway).
 
+   .. note:: This function has been added in rrdtool 1.5.0 and may not be available if compiled against an older version.
+
    .. versionadded:: 0.1.7
 
 .. function:: resize(*args)
@@ -363,7 +366,7 @@ The function calls are converted to appropriate values and mapped to their librr
    Example::
 
       >>> rrdtool.__version__
-      '0.1.7'
+      '0.1.11'
 
 Errors and Exceptions
 ---------------------

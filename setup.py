@@ -12,7 +12,7 @@ from distutils.errors import CompileError, LinkError
 package_dir = os.path.abspath(os.path.dirname(__file__))
 
 # package version
-package_version = '0.1.10'
+package_version = '0.1.11'
 
 
 def check_extensions():
