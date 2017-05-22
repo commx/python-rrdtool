@@ -9,6 +9,8 @@ Supported Python versions: 2.6+, 3.3+.
 
 The bindings are based on the code of the original Python 2 bindings for rrdtool by Hye-Shik Chang, which are currently shipped as official bindings with rrdtool.
 
+**Note:** python-rrdtool is now the official rrdtool Python binding and shipped with the upstream distribution.
+
 Installation
 ------------
 
