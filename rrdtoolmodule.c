@@ -1005,7 +1005,9 @@ _rrdtool_lastupdate(PyObject *Py_UNUSED(self), PyObject *args)
                 return NULL;
 
             PyDict_SetItemString(ds_dict, ds_names[i], val);
-            Py_DECREF(val);
+
+            if (val != Py_None)
+                Py_DECREF(val);
 
             free(last_ds[i]);
             free(ds_names[i]);
@@ -1142,7 +1144,7 @@ _rrdtool_fetch_cb_wrapper(
         *ds_namv = (char **)calloc(*ds_cnt, sizeof(char *));
 
         if (*ds_namv == NULL) {
-            rrd_set_error("an error occured while allocating memory for "
+            rrd_set_error("an error occurred while allocating memory for "
                 "ds_namv when allocating memory for python callback");
             goto gil_release_err;
         }
