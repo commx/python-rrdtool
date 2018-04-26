@@ -12,7 +12,7 @@ from distutils.errors import CompileError, LinkError
 package_dir = os.path.abspath(os.path.dirname(__file__))
 
 # package version
-package_version = '0.1.13'
+package_version = '0.1.14'
 
 
 def check_extensions():
@@ -135,10 +135,12 @@ def main():
                      'Operating System :: MacOS',
                      'Programming Language :: C',
                      'Programming Language :: Python',
+                     'Programming Language :: Python :: 2.6',
                      'Programming Language :: Python :: 2.7',
                      'Programming Language :: Python :: 3.3',
                      'Programming Language :: Python :: 3.4',
                      'Programming Language :: Python :: 3.5',
+                     'Programming Language :: Python :: 3.6',
         ],
         ext_modules=check_extensions(),
         test_suite='tests'

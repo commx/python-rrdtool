@@ -157,13 +157,13 @@ convert_args(char *command, PyObject *args, char ***rrdtool_argv, int *rrdtool_a
         o = PyTuple_GET_ITEM(args, i);
 
         if (PyRRD_String_Check(o))
-            *rrdtool_argv[++argv_count] = PyRRD_String_AS_STRING(o);
+            (*rrdtool_argv)[++argv_count] = PyRRD_String_AS_STRING(o);
         else if (PyList_CheckExact(o)) {
             for (j = 0; j < PyList_Size(o); j++) {
                 lo = PyList_GetItem(o, j);
 
                 if (PyRRD_String_Check(lo))
-                    *rrdtool_argv[++argv_count] = PyRRD_String_AS_STRING(lo);
+                    (*rrdtool_argv)[++argv_count] = PyRRD_String_AS_STRING(lo);
                 else {
                     PyMem_Del(*rrdtool_argv);
                     PyErr_Format(PyExc_TypeError,
