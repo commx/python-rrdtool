@@ -18,9 +18,9 @@ The easy way:
 
     # pip install rrdtool
 
-**Note:** This requires rrdtool and it's development files (headers, libraries, dependencies) to be installed.
+**Note:** This requires rrdtool and its development files (headers, libraries, dependencies) to be installed.
 
-In case you'd like to build the module on your own, you can obtain a copy of the repository and run `python setup.py install` in it's destination folder to build the native C extension.
+In case you'd like to build the module on your own, you can obtain a copy of the repository and run `python setup.py install` in its destination folder to build the native C extension.
 
 Usage
 -----

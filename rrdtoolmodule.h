@@ -35,7 +35,7 @@ typedef int (*rrd_fetch_cb_t)(
     const char     *filename,  /* name of the rrd */
     enum cf_en     cf_idx, /* consolidation function */
     time_t         *start,
-    time_t         *end,       /* which time frame do you want ?
+    time_t         *end,       /* which time frame do you want?
                                 * will be changed to represent reality */
     unsigned long  *step,      /* which stepsize do you want? 
                                 * will be changed to represent reality */

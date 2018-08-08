@@ -1052,7 +1052,7 @@ _rrdtool_lastupdate(PyObject *Py_UNUSED(self), PyObject *args)
 
 #ifdef WITH_FETCH_CB
 
-/** An Python object which will hold an callable for fetch callbacks */
+/** A Python object which will hold a callable for fetch callbacks */
 static PyObject *_rrdtool_fetch_callable = NULL;
 
 static int

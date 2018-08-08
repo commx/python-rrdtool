@@ -10,7 +10,7 @@ Welcome to python-rrdtool's documentation!
 
 The bindings are a fork of the `Python bindings by Hye-Shik Chang <http://www.nongnu.org/py-rrdtool/>`_, which are currently shipped with the official rrdtool source distribution.
 
-Tables of content
+Table of contents
 -----------------
 
 .. toctree::
