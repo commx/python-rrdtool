@@ -42,27 +42,27 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: None
 
 .. function:: dump(*args)
 
-   Dump an round robin database to XML.
+   Dump a round robin database to XML.
 
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: None
 
 .. function:: fetch(*args)
 
-   Fetch data from an round robin database.
+   Fetch data from a round robin database.
 
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: tuple
 
@@ -79,7 +79,7 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: int
 
@@ -89,7 +89,7 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: None
 
@@ -99,7 +99,7 @@ The function calls are converted to appropriate values and mapped to their librr
    
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: tuple
 
@@ -118,7 +118,7 @@ The function calls are converted to appropriate values and mapped to their librr
    
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: dict
 
@@ -143,7 +143,7 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: dict
 
@@ -175,17 +175,17 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: int
 
 .. function:: lastupdate(*args)
 
-   Returns datetme and value stored for each datum in the most recent update of an RRD.
+   Returns datetime and value stored for each datum in the most recent update of an RRD.
 
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: dict
 
@@ -227,7 +227,7 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param callable: A callable method or object
    :type callable: callable
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :rtype: None
 
    Example::
@@ -278,7 +278,7 @@ The function calls are converted to appropriate values and mapped to their librr
       rrdtool.register_fetch_cb(cb)  # overwrite callback
       rrdtool.graphv(**graphv_args)
 
-   .. note:: This function uses Python long integers on Python 2.x and 3.x to minimize compatibility code requirements (Python 3 has long integers as it's default int anyway).
+   .. note:: This function uses Python long integers on Python 2.x and 3.x to minimize compatibility code requirements (Python 3 has long integers as its default int anyway).
 
    .. note:: This function has been added in rrdtool 1.5.0 and may not be available if compiled against an older version.
 
@@ -290,7 +290,7 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: None
 
@@ -300,7 +300,7 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: None
 
@@ -310,7 +310,7 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: None
 
@@ -320,7 +320,7 @@ The function calls are converted to appropriate values and mapped to their librr
 
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: dict
 
@@ -330,7 +330,7 @@ The function calls are converted to appropriate values and mapped to their librr
    
    :param args: Arguments
    :type args: tuple
-   :raises ProgrammingError: in the event of an programming error
+   :raises ProgrammingError: in the event of a programming error
    :raises OperationalError: in the event of an rrdtool error
    :rtype: dict
 
