@@ -127,7 +127,7 @@ def main():
         long_description=long_description,
         long_description_content_type='text/markdown',
         keywords=['rrdtool'],
-        author='Christian Kroeger, Hye-Shik Chang',
+        author='Christian Kroeger',
         author_email='commx@commx.ws',
         url='https://github.com/commx/python-rrdtool',
         classifiers=[
