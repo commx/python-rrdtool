@@ -3,7 +3,7 @@
  * Based on the rrdtool Python bindings for Python 2 from
  * Hye-Shik Chang <perky@fallin.lv>.
  *
- * Copyright 2012 Christian Jurk <commx@commx.ws>
+ * Copyright 2012 Christian Kroeger <commx@commx.ws>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -157,13 +157,13 @@ convert_args(char *command, PyObject *args, char ***rrdtool_argv, int *rrdtool_a
         o = PyTuple_GET_ITEM(args, i);
 
         if (PyRRD_String_Check(o))
-            (*rrdtool_argv)[++argv_count] = PyRRD_String_AS_STRING(o);
+            (*rrdtool_argv)[++argv_count] = (char *)PyRRD_String_AS_STRING(o);
         else if (PyList_CheckExact(o)) {
             for (j = 0; j < PyList_Size(o); j++) {
                 lo = PyList_GetItem(o, j);
 
                 if (PyRRD_String_Check(lo))
-                    (*rrdtool_argv)[++argv_count] = PyRRD_String_AS_STRING(lo);
+                    (*rrdtool_argv)[++argv_count] = (char *)PyRRD_String_AS_STRING(lo);
                 else {
                     PyMem_Del(*rrdtool_argv);
                     PyErr_Format(PyExc_TypeError,
@@ -1181,7 +1181,7 @@ _rrdtool_fetch_cb_wrapper(
         unsigned int x = 0;
 
         while (PyDict_Next(tmp, &pos, &key, &value)) {
-            char *key_str = PyRRD_String_AS_STRING(key);
+            const char *key_str = PyRRD_String_AS_STRING(key);
 
             if (key_str == NULL) {
                 rrd_set_error("key of 'data' element from callback return "
@@ -1240,8 +1240,7 @@ _rrdtool_fetch_cb_wrapper(
 
                         if (exc_value != NULL) {
                             exc_value_str = PyObject_Str(exc_value);
-                            char *exc_str = PyRRD_String_AS_STRING(exc_value_str);
-                            rrd_set_error(exc_str);
+                            rrd_set_error((char *)PyRRD_String_AS_STRING(exc_value_str));
                             Py_DECREF(exc_value);
                         }
 

@@ -1,13 +1,12 @@
-import base64
 import math
-import os
 import rrdtool
 import unittest
 import sys
 
 
 class TestFetchCallback(unittest.TestCase):
-    def check_skip(self):
+    @staticmethod
+    def check_skip():
         if not hasattr(rrdtool, 'register_fetch_cb'):
             if sys.version_info >= (2, 7):
                 raise unittest.SkipTest('register_fetch_cb not available')
@@ -46,7 +45,13 @@ class TestFetchCallback(unittest.TestCase):
 
         rrdtool.register_fetch_cb(my_callback)
 
-        self.assertRaisesRegex(
+        # TestCase.assertRaisesRegexp was renamed in Python 3.2
+        if sys.version_info >= (3, 2):
+            assert_raises_regex = self.assertRaisesRegex
+        else:
+            assert_raises_regex = self.assertRaisesRegexp
+
+        assert_raises_regex(
             rrdtool.OperationalError,
             'expected callback method to be a dict',
             rrdtool.graphv,

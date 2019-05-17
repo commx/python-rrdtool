@@ -108,42 +108,49 @@ def compile_extensions(macros, compat=False):
             libraries=libraries)
     except CompileError:
         sys.exit('Error: Unable to compile the binary module. Do you have the rrdtool header and libraries installed?')
-        ret = None
-    except LinkError as exc:
-        shutil.rmtree(tmp_dir)
-        raise  # re-raise
+    except LinkError:
+        raise
     else:
         return exts  # seems to be available, compile in regular way
-
-    shutil.rmtree(tmp_dir)
-    return ret
+    finally:
+        shutil.rmtree(tmp_dir)
 
 
 def main():
+    with open('README.md') as readme:
+        long_description = readme.read()
+
     kwargs = dict(
         name='rrdtool',
         version=package_version,
         description='Python bindings for rrdtool',
+        long_description=long_description,
+        long_description_content_type='text/markdown',
         keywords=['rrdtool'],
         author='Christian Kroeger, Hye-Shik Chang',
         author_email='commx@commx.ws',
-        license='LGPL',
         url='https://github.com/commx/python-rrdtool',
-        classifiers=['License :: OSI Approved',
-                     'Operating System :: POSIX',
-                     'Operating System :: Unix',
-                     'Operating System :: MacOS',
-                     'Programming Language :: C',
-                     'Programming Language :: Python',
-                     'Programming Language :: Python :: 2.6',
-                     'Programming Language :: Python :: 2.7',
-                     'Programming Language :: Python :: 3.3',
-                     'Programming Language :: Python :: 3.4',
-                     'Programming Language :: Python :: 3.5',
-                     'Programming Language :: Python :: 3.6',
+        classifiers=[
+            'Development Status :: 5 - Production/Stable',
+            'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)',
+            'Operating System :: POSIX',
+            'Programming Language :: C',
+            'Programming Language :: Python :: 2',
+            'Programming Language :: Python :: 2.6',
+            'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3',
+            'Programming Language :: Python :: 3.3',
+            'Programming Language :: Python :: 3.4',
+            'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
+            'Programming Language :: Python :: 3.7',
         ],
         ext_modules=check_extensions(),
-        test_suite='tests'
+        test_suite='tests',
+        package_data={
+            '': ['LICENSE']
+        },
+        python_requires='>=2.6, !=3.0.*, !=3.1.*, !=3.2.*, <4'
     )
 
     setup(**kwargs)
