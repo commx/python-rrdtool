@@ -53,11 +53,14 @@ def compile_extensions(macros, compat=False):
     import distutils.ccompiler
     import tempfile
     import shutil
+    import platform
 
     from textwrap import dedent
 
     # common vars
     libraries = ['rrd']
+    if platform.system().upper().startswith('CYGWIN'):
+        libraries.extend(['cairo', 'pango-1.0', 'pangocairo-1.0', 'png', 'glib-2.0', 'gobject-2.0'])
     include_dirs = [package_dir, '/usr/local/include']
     library_dirs = ['/usr/local/lib']
     compiler_args = dict(
