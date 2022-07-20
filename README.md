@@ -10,7 +10,7 @@ The bindings are based on the code of the original Python 2 bindings module for 
 
 * Native extension (written in C) for performance reasons.
 * Uses library functions as exposed by librrd.
-* Works with Python 2.6, 2.7, 3.3 and any later version.
+* Works with Python 2.7, 3.5 and later.
 
 
 ## Installation

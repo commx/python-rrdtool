@@ -12,7 +12,7 @@ from distutils.errors import CompileError, LinkError
 package_dir = os.path.abspath(os.path.dirname(__file__))
 
 # package version
-package_version = '0.1.15'
+package_version = '0.1.16'
 
 
 def check_extensions():
@@ -136,21 +136,21 @@ def main():
             'Operating System :: POSIX',
             'Programming Language :: C',
             'Programming Language :: Python :: 2',
-            'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.3',
-            'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.9',
+            'Programming Language :: Python :: 3.10',
         ],
         ext_modules=check_extensions(),
         test_suite='tests',
         package_data={
             '': ['LICENSE']
         },
-        python_requires='>=2.6, !=3.0.*, !=3.1.*, !=3.2.*, <4'
+        python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4'
     )
 
     setup(**kwargs)
