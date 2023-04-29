@@ -254,7 +254,7 @@ The function calls are converted to appropriate values and mapped to their librr
       ]
 
       def my_callback(filename, cf, start, end, step):
-          itemcount = (end - start) / step
+          itemcount = math.ceil((end - start) / step)
           return {
               'start': start,
               'step': 300,
@@ -265,8 +265,8 @@ The function calls are converted to appropriate values and mapped to their librr
               }
           }
 
-      rrdtool.register_fetch_cb(my_callable)
-      rrdtool.graphv(**graphv_args)
+      rrdtool.register_fetch_cb(my_callback)
+      rrdtool.graphv(*graphv_args)
 
       # also works with callable objects
       class MyCallable(object):
@@ -276,7 +276,7 @@ The function calls are converted to appropriate values and mapped to their librr
 
       cb = MyCallable()
       rrdtool.register_fetch_cb(cb)  # overwrite callback
-      rrdtool.graphv(**graphv_args)
+      rrdtool.graphv(*graphv_args)
 
    .. note:: This function uses Python long integers on Python 2.x and 3.x to minimize compatibility code requirements (Python 3 has long integers as its default int anyway).
 
